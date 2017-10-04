@@ -12,12 +12,3 @@ public class MainActivity extends AppCompatActivity {
     }
 }
 
-// Hello... This is Sanath hhhiii
-//this is great
-//I am Ananya
-//This is Dhruva ans Dhanush JJJJ
-//I am Dhruva
-//I am Sanath
-//Horse Shoe
-//Itz Rakshanda
-//Hi !!!
