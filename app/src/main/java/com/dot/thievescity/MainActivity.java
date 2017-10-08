@@ -1,4 +1,4 @@
-//This is the activity for the login screen
+
 
 package com.dot.thievescity;
 
