@@ -102,7 +102,7 @@ public class GpsTracker extends Service implements LocationListener {
                         }
                     }
                 }
-                // GPS'ten alinan konum bilgisi;
+                // GPS'ten alinan konum bilgisi
                 if (isGPSEnabled)
                 {
                     if (location == null)
