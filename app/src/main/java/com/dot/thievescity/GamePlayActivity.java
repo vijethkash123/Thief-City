@@ -126,8 +126,13 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
         //Fetching user id and password//
     }
 
-    void loadGems(){
+    void loadmyGems(){
  //assingnment of gems and values of them(3 types)//
+    }
+
+    void loadOtherGems()
+    {
+
     }
     //using multithreading implement timer1 and display map//
     void timer1(){
