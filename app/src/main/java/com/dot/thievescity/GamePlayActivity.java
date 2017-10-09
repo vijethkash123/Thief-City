@@ -121,29 +121,39 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
 
 
     }
-
+    // Display layout//
+    void loginDetails(){
+        //Fetching user id and password//
+    }
 
     void loadGems(){
+ //assingnment of gems and values of them(3 types)//
+    }
+    //using multithreading implement timer1 and display map//
+    void timer1(){
+      /*timer set on for 15 mins*/
+    }
+    void unplacedGems(){
+        //when timer1 is 0 and gemarray!=0,place the remaining gems in current location//
+    }
+// server time starts(actual timer)//
+    //Play begins//
+    void initialiseGems(){
+    }
+
+    void displayMap (){
 
     }
 
-    void markGems(){
-
+    void updategemDisplay(){
+//info about placed gems and displaying it on the map//
     }
 
-    void loadOtherGems(){
-
-    }
-
-    void startLocationService(){
+    void startLocationService() {
 
     }
 
     void getUserLocation() {
-
-    }
-
-    void showUserLocation() {
 
     }
 
