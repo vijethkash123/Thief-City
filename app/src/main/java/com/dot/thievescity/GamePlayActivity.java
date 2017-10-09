@@ -2,17 +2,21 @@ package com.dot.thievescity;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
+import android.widget.ImageButton;
 
 import com.dot.thievescity.utils.GpsTracker;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -39,6 +43,24 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+       //floating button
+        FloatingActionButton b = findViewById(R.id.fab);
+        b.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(GamePlayActivity.this,pop.class));
+
+
+
+
+            }
+        });
+
+
+
+
+
 
     }
 
@@ -121,6 +143,14 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
 
 
     }
+
+
+
+
+
+
+
+
     // Display layout//
     void loginDetails(){
         //Fetching user id and password//
