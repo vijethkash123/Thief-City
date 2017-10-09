@@ -1,4 +1,4 @@
-//This is the activity for the login screen
+
 
 package com.dot.thievescity;
 
@@ -15,8 +15,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onSubmit(View view){
-        //Handle operations when user clicks submit button
+        //operations when user clicks submit button
+        //hai this is sparsha
+        //heyyyy
     }
+
+
 
 }
 
