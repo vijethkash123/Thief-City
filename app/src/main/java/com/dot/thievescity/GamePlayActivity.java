@@ -123,15 +123,13 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
             Location lastKnownLocation =null;
             if(gps.canGetLocation())
             {
-                lastKnownLocation = gps.getLocation();
-                LatLng yourLoc = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
-                mMap.addMarker(new MarkerOptions().position(yourLoc).title("Marker in User Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(yourLoc,15));
 
                 Location loc1 = gps.getLocation();
                 Location loc2 = gps.getLocation();
 
                 float distanceInMeters = loc1.distanceTo(loc2);
+                lastKnownLocation = gps.getLocation();
+
 
                 Toast.makeText(this,distanceInMeters+"",Toast.LENGTH_LONG).show();
             }

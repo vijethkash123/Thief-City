@@ -20,6 +20,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 /**
@@ -29,6 +30,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class GpsTracker extends Service implements LocationListener {
     private final Context mContext;
     GoogleMap mMap;
+    Marker present;
     // Cihazda gps acik mi?
     boolean isGPSEnabled = false;
 
@@ -156,8 +158,10 @@ public class GpsTracker extends Service implements LocationListener {
     public void onLocationChanged(Location location)
     {
         LatLng yourLoc = new LatLng(location.getLatitude(), location.getLongitude());
-        mMap.addMarker(new MarkerOptions().position(yourLoc).title("Marker in User Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+       Marker present = mMap.addMarker(new MarkerOptions().position(yourLoc).title("Marker in User Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(yourLoc,15));
+
+
     }
 
     @Override
