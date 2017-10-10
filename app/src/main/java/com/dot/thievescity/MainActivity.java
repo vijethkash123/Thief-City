@@ -19,13 +19,33 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
-
+            }
 
 
             }
 
     }
 
+        public void onSubmit(View view){
+        //operations when user clicks submit button
+        //hai this is sparsha
+        //heyyyy
+        //nandu correct aag edi, error in main activity noodi adu yeanu   -Dhanush
+        //run aagtha ella :-(
 
 
+        ;
+    }
+
+
+
+
+
+
+
+
+
+
+
+}
 

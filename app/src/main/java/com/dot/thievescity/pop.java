@@ -26,4 +26,9 @@ public class pop extends Activity {
 
         getWindow().setLayout((int)(width*0.6),(int)(height*.8));
     }
+
+
+
+
 }
+
