@@ -151,7 +151,7 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
 
     // Display layout//
     void loginDetails(){
-        //Fetching user id and password//
+        //Fetching user id and password/
     }
 
     void loadmyGems(){
