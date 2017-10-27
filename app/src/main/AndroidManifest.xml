@@ -23,7 +23,6 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:screenOrientation="portrait"
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity" />
         <!--
@@ -40,12 +39,14 @@
 
         <activity
             android:name=".GamePlayActivity"
+            android:screenOrientation="portrait"
             android:label="@string/title_activity_game_play"></activity>
         <activity
             android:name=".SignInActivity"
             android:label="@string/title_activity_sign_in"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
-            <intent-filter>
+            <intent-filter android:label="Thief City">
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -54,9 +55,11 @@
         <activity
             android:name=".InstructionsActivity"
             android:label="@string/title_activity_instructions"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".SecondGamePlayActivity"
+            android:screenOrientation="portrait"
             android:label="@string/title_activity_second_game_play"></activity>
     </application>
 

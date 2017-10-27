@@ -70,7 +70,6 @@ public class SignInActivity extends AppCompatActivity {
             public void done(ParseUser user, ParseException e) {
                 if(user != null)
                 {
-                    Toast.makeText(getApplicationContext(),"Login Successful", Toast.LENGTH_LONG).show();
                     usernameGlobal = user.getUsername();
                     checkUserAlreadyLoggedIn(usernameGlobal);
                 }
@@ -118,6 +117,7 @@ public class SignInActivity extends AppCompatActivity {
     {
        if(!loggedIn)
        {
+           Toast.makeText(getApplicationContext(),"Login Successful", Toast.LENGTH_LONG).show();
            ParseObject parseObject = new ParseObject("UserList");
            parseObject.put("username", usernameGlobal);
            parseObject.put("loggedIn", true);

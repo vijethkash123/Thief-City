@@ -132,7 +132,7 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
                 lastKnownLocation = gpsTracker.getLocation();
                 LatLng yourLoc = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
                 mMap.addMarker(new MarkerOptions().position(yourLoc).title("Marker in User Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(yourLoc,15));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(yourLoc,15)); // our col loc here
 
                 //Location loc1 = gpsTracker.getLocation();
                 //Location loc2 = gpsTracker.getLocation();
