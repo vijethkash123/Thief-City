@@ -1,6 +1,7 @@
 package com.dot.thievescity.utils;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Service;
 import android.content.Context;
@@ -15,11 +16,14 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.dot.thievescity.SecondGamePlayActivity;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 /**
@@ -36,31 +40,48 @@ public class GpsTracker extends Service implements LocationListener {
     boolean isNetworkEnabled = false;
 
     boolean canGetLocation = false;
+    Marker currentLocationMarker;
 
     // Konum
-    Location location;
+    public Location location = null;
     // Enlem
     double latitude;
     // Boylam
     double longitude;
 
     // Konum guncellemesi gerektirecek minimum degisim miktari
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // metre
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // metre
 
     // Konum guncellemesi gerektirecek minimum sure miktari
-    private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 1; // dakika
+    private static final long MIN_TIME_BW_UPDATES = 1; // dakika
 
     // LocationManager nesnesi
     protected LocationManager locationManager;
 
+    public SecondGamePlayActivity myActivity;
+    boolean onOnce = false;
+
     //
     // Kurucu Metod - Constructor
     //
+    public GpsTracker(Context context, GoogleMap map, SecondGamePlayActivity myActivity) {
+        this.mContext = context;
+        this.mMap=map;
+        this.myActivity = myActivity;
+        //location = new Location("dummyProvider");
+        location = getLocation();
+    }
+
     public GpsTracker(Context context, GoogleMap map) {
         this.mContext = context;
         this.mMap=map;
-        getLocation();
+        location = getLocation();
     }
+     public GpsTracker(Context context)
+     {
+         this.mContext = context;
+         location = getLocation();
+     }
 
     //
     // Konum bilgisini dondurur
@@ -105,10 +126,11 @@ public class GpsTracker extends Service implements LocationListener {
                 // GPS'ten alinan konum bilgisi
                 if (isGPSEnabled)
                 {
-                    if (location == null)
+                    if (!onOnce)
                     {
                         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-                        Log.d("GPS Enabled", "GPS Enabled");
+                        Log.i("GPS Enabled", "GPS Enabled");
+                        Toast.makeText(myActivity,"Here", Toast.LENGTH_LONG).show();
                         if (locationManager != null)
                         {
                             location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -118,6 +140,7 @@ public class GpsTracker extends Service implements LocationListener {
                                 longitude = location.getLongitude();
                             }
                         }
+                        onOnce = true;
                     }
                 }
             }
@@ -125,6 +148,7 @@ public class GpsTracker extends Service implements LocationListener {
         catch (Exception e)
         {
             e.printStackTrace();
+            //Toast.makeText(getApplicationContext(),"Please enable GPS and/or Internet", Toast.LENGTH_LONG);
         }
 
         return location;
@@ -153,11 +177,20 @@ public class GpsTracker extends Service implements LocationListener {
     }
 
     @Override
-    public void onLocationChanged(Location location)
+    public void onLocationChanged(Location locationLocal)
     {
+
+        Log.i("location","changed");
+        if(myActivity != null)
+        myActivity.loadGemsNearBy();
         LatLng yourLoc = new LatLng(location.getLatitude(), location.getLongitude());
-        mMap.addMarker(new MarkerOptions().position(yourLoc).title("Marker in User Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(yourLoc,15));
+        location.setLatitude(locationLocal.getLatitude());
+        location.setLongitude(locationLocal.getLongitude());
+        //mMap.clear();
+        if(currentLocationMarker!=null)
+            currentLocationMarker.remove();
+         currentLocationMarker = mMap.addMarker(new MarkerOptions().position(yourLoc).title("Marker in User Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+       // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(yourLoc,15));
     }
 
     @Override
@@ -168,6 +201,7 @@ public class GpsTracker extends Service implements LocationListener {
     @Override
     public void onProviderEnabled(String provider)
     {
+
     }
 
     @Override
