@@ -1,7 +1,6 @@
 package com.dot.thievescity.utils;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Service;
 import android.content.Context;
@@ -12,14 +11,14 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
-import android.widget.Toast;
 
+import com.dot.thievescity.GamePlayActivity;
 import com.dot.thievescity.SecondGamePlayActivity;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
@@ -59,6 +58,7 @@ public class GpsTracker extends Service implements LocationListener {
     protected LocationManager locationManager;
 
     public SecondGamePlayActivity myActivity;
+    public GamePlayActivity firstActivity;
     boolean onOnce = false;
 
     //
@@ -72,9 +72,10 @@ public class GpsTracker extends Service implements LocationListener {
         location = getLocation();
     }
 
-    public GpsTracker(Context context, GoogleMap map) {
+    public GpsTracker(Context context, GoogleMap map, GamePlayActivity firstActivity) {
         this.mContext = context;
         this.mMap=map;
+        this.firstActivity = firstActivity;
         location = getLocation();
     }
      public GpsTracker(Context context)
@@ -93,8 +94,8 @@ public class GpsTracker extends Service implements LocationListener {
             isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
             // Internet acik mi?
             isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-            if (!isGPSEnabled && !isNetworkEnabled) {
-
+            if (!isGPSEnabled) {
+                showSettingsAlert();
             } else {
                 this.canGetLocation = true;
 
@@ -130,7 +131,7 @@ public class GpsTracker extends Service implements LocationListener {
                     {
                         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
                         Log.i("GPS Enabled", "GPS Enabled");
-                        Toast.makeText(myActivity,"Here", Toast.LENGTH_LONG).show();
+                        //Toast.makeText(myActivity,"Here", Toast.LENGTH_LONG).show();
                         if (locationManager != null)
                         {
                             location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -226,26 +227,27 @@ public class GpsTracker extends Service implements LocationListener {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(mContext);
 
         // Mesaj basligi
-        alertDialog.setTitle("GPS Kapalı");
+        alertDialog.setTitle("GPS Disabled");
 
         // Mesaj
-        alertDialog.setMessage("Konum bilgisi alınamıyor. Ayarlara giderek gps'i aktif hale getiriniz.");
+        alertDialog.setMessage("GPS disabled. Do you want to enable GPS?");
 
         // Mesaj ikonu
         //alertDialog.setIcon(R.drawable.delete);
 
         // Ayarlar butonuna tiklandiginda
-        alertDialog.setPositiveButton("Ayarlar", new DialogInterface.OnClickListener()
+        alertDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener()
         {
             public void onClick(DialogInterface dialog,int which)
             {
                 Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                 mContext.startActivity(intent);
+                waitTillGPSEnabled();
             }
         });
 
         // Iptal butonuna tiklandiginda
-        alertDialog.setNegativeButton("İptal", new DialogInterface.OnClickListener()
+        alertDialog.setNegativeButton("No", new DialogInterface.OnClickListener()
         {
             public void onClick(DialogInterface dialog, int which)
             {
@@ -264,5 +266,25 @@ public class GpsTracker extends Service implements LocationListener {
         {
             locationManager.removeUpdates(GpsTracker.this);
         }
+    }
+
+    void waitTillGPSEnabled()
+    {
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
+                {
+                    if(firstActivity!=null)
+                        firstActivity.checkPermissionAndStart();
+                    else
+                        if(myActivity!=null)
+                            myActivity.checkPermissionAndStart();
+                }
+                else
+                    handler.postDelayed(this,3000);
+            }
+        },3000);
     }
 }

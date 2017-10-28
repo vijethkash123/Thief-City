@@ -53,7 +53,7 @@ public class SignInActivity extends AppCompatActivity {
     boolean isGameStarted()
     {
         SharedPreferences sharedPreferences = this.getSharedPreferences("com.dot.thievescity", Context.MODE_PRIVATE);
-        return sharedPreferences.getBoolean("secStarted", false);
+        return sharedPreferences.getBoolean("secondStarted", false);
     }
 
     public void onSignIn(View view)
@@ -128,7 +128,7 @@ public class SignInActivity extends AppCompatActivity {
        }
        else
        {
-           Toast.makeText(getApplicationContext(),"User already logged in with another device", Toast.LENGTH_LONG).show();
+           Toast.makeText(getApplicationContext(),"User already logged in before", Toast.LENGTH_LONG).show();
        }
     }
 

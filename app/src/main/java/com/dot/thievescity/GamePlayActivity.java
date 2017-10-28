@@ -76,7 +76,7 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
 
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ) {
                 // TODO: Consider calling
                 //    ActivityCompat#requestPermissions
                 // here to request the missing permissions, and then overriding
@@ -84,6 +84,7 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
                 //                                          int[] grantResults)
                 // to handle the case where the user grants the permission. See the documentation
                 // for ActivityCompat#requestPermissions for more details.
+                startLocationService();
                 return;
             }
           //  locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
@@ -116,45 +117,48 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
         //LatLng stage = new LatLng(13.024427, 76.103561);
         //mMap.addMarker(new MarkerOptions().position(stage).title("Marker in Stage"));
         //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(stage,15));
-        gpsTracker =new GpsTracker(this, mMap);
+        checkPermissionAndStart();
 
+    }
 
+     public void checkPermissionAndStart()
+    {
         if(Build.VERSION.SDK_INT >= 23 && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
-
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
-
-
         }
         else{
-            Location lastKnownLocation =null;
-            if(gpsTracker.canGetLocation())
-            {
-                lastKnownLocation = gpsTracker.getLocation();
-                LatLng yourLoc = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
-                mMap.addMarker(new MarkerOptions().position(yourLoc).title("Marker in User Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(yourLoc,15)); // our col loc here
-
-                //Location loc1 = gpsTracker.getLocation();
-                //Location loc2 = gpsTracker.getLocation();
-
-
-
-                //float distanceInMeters = loc1.distanceTo(loc2);
-
-                //Toast.makeText(this,distanceInMeters+"",Toast.LENGTH_LONG).show();
-            }
-            else Toast.makeText(this,"Can't get location",Toast.LENGTH_SHORT).show();
-
-
+            startLocationService();
         }
+    }
 
+    void startLocationService()
+    {
+        gpsTracker =new GpsTracker(this, mMap, GamePlayActivity.this);
+        Location lastKnownLocation;
+        if(gpsTracker.canGetLocation())
+        {
+            lastKnownLocation = gpsTracker.getLocation();
+            //LatLng yourLoc = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
+            //mMap.addMarker(new MarkerOptions().position(yourLoc).title("Marker in User Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(13.0173608,76.0923321),15)); // our col loc here
+
+            //Location loc1 = gpsTracker.getLocation();
+            //Location loc2 = gpsTracker.getLocation();
+
+
+
+            //float distanceInMeters = loc1.distanceTo(loc2);
+
+            //Toast.makeText(this,distanceInMeters+"",Toast.LENGTH_LONG).show();
+        }
+        else Toast.makeText(this,"Can't get location",Toast.LENGTH_SHORT).show();
 
 
     }
 
     void startGemPlacementProcess()
     {
-      //  startLocation = gpsTracker.location;
+      //  startLocationService = gpsTracker.location;
         final TextView timerText = findViewById(R.id.timer_text);
         int timeForEachGem = 60*1000;
        // Gem myGem = myGems.get(gemIndex);
@@ -193,6 +197,10 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
         parseObject.put("username", username);
 
         Location location = gpsTracker.location;
+        if(location == null) {
+            Toast.makeText(getApplicationContext(), "PLace failed! Try again", Toast.LENGTH_SHORT).show();
+            return;
+        }
         final LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
         //mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
         //Location currentLocation = gpsTracker.location;
@@ -232,10 +240,6 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
         startActivity(secondGamePlayActivity);
         finish();
     }
-    // Display layout
-    void loginDetails(){
-        //Fetching user id and password
-    }
 
     void loadMyGems(){
  //  assignnment of gems and values of them(3 types)
@@ -243,53 +247,6 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
             for(int i=0;i<5;i++)
                 myGems.add(new Gem(type,username));
         }
-    }
-
-    void loadOtherGems()
-    {
-
-    }
-    //using multithreading implement timer1 and display map
-    void timer1(){
-      /*timer set on for 15 mins*/
-    }
-    void unplacedGems(){
-        //when timer1 is 0 and gemarray!=0,place the remaining gems in current location
-    }
-// server time starts(actual timer)
-    //Play begins
-    void initialiseGems(){
-    }
-
-    void displayMap (){
-
-    }
-
-    void updateGemDisplay(){
-    //info about placed gems and displaying it on the map
-    }
-
-    void startLocationService() {
-
-    }
-
-    void getUserLocation() {
-
-    }
-
-    void findGemsNearBy()
-    {
-
-    }
-
-    void onGemFound(){
-
-    }
-
-
-    void onClickBag()
-    {
-
     }
 
 
