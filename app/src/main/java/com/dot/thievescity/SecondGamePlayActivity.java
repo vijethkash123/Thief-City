@@ -52,6 +52,7 @@ import android.os.Handler;
 
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
@@ -80,6 +81,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
     NotificationCompat.Builder notification;
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
+    int notificationIndex = 0;
 
 
     @Override
@@ -95,7 +97,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         username  = ParseUser.getCurrentUser().getUsername();
         sharedPreferences = this.getSharedPreferences("com.dot.thievescity", Context.MODE_PRIVATE);
         editor = sharedPreferences.edit();
-        editor.putBoolean("secStarted", true);
+        editor.putBoolean("secondStarted", true);
         editor.apply();
         loadMyGems();
         loadAllGems();
@@ -139,6 +141,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        gpsTracker =new GpsTracker(this, mMap, SecondGamePlayActivity.this);
 
         // Add a marker in Sydney and move the camera
        // LatLng silver = new LatLng(13.022775, 76.102263);
@@ -152,7 +155,15 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         //LatLng stage = new LatLng(13.024427, 76.103561);
         //mMap.addMarker(new MarkerOptions().position(stage).title("Marker in Stage"));
         //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(stage,15));
-        gpsTracker =new GpsTracker(this, mMap, SecondGamePlayActivity.this);
+
+        checkPermissionAndStart();
+
+
+    }
+
+    public void checkPermissionAndStart()
+    {
+
 
 
 
@@ -164,14 +175,17 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         }
         else{
             Location lastKnownLocation =null;
+            if(gpsTracker.location==null)
+                gpsTracker.getLocation();
             if(gpsTracker.canGetLocation())
             {
-                lastKnownLocation = gpsTracker.getLocation();
+                gpsTracker.location = gpsTracker.getLocation();
+                lastKnownLocation = gpsTracker.location;
                 LatLng yourLoc = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
                 //mMap.addMarker(new MarkerOptions().position(yourLoc).title("Marker in User Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(yourLoc,15));
 
-               // Location loc1 = gpsTracker.getLocation();
+                // Location loc1 = gpsTracker.getLocation();
                 //Location loc2 = gpsTracker.getLocation();
 
 
@@ -184,9 +198,6 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
 
         }
-
-
-
     }
 
     void startSubscription()
@@ -231,33 +242,41 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                     query.findInBackground(new FindCallback<ParseObject>() {
                         @Override
                         public void done(List<ParseObject> objects, ParseException e) {
-                            for (ParseObject object : objects) {
-                                date = object.getUpdatedAt();
-                                Gem gem = parseObjectToGem(object);
-                                //Toast.makeText(getApplicationContext(),"Username:"+gem.username ,Toast.LENGTH_SHORT).show();
-                                Gem requiredGem = findGem(gem.id);
-                                //boolean yours = requiredGem.username.equals(username);
-                                if(requiredGem!=null && requiredGem.username.equals(username) && !gem.username.equals(username))
-                                    notifyGemLost(gem);
-                                if(requiredGem == null)
-                                {
-                                    requiredGem = new Gem(gem.type, gem.username);
-                                    allGems.add(requiredGem);
-                                }
-                                updateGem(requiredGem, gem);
-                                if(!requiredGem.username.equals(username) && requiredGem.marker != null)
-                                {
-                                    requiredGem.marker.remove();
-                                    requiredGem.marker = null;
-                                }
-                                if(requiredGem.username.equals(username) && requiredGem.marker == null)
-                                    addMarker(requiredGem);
-                                Log.i("Here", "StartSubscription");
+                            try {
+                                for (ParseObject object : objects) {
+                                    date = object.getUpdatedAt();
+                                    Gem gem = parseObjectToGem(object);
+                                    //Toast.makeText(getApplicationContext(),"Username:"+gem.username ,Toast.LENGTH_SHORT).show();
+                                    Gem requiredGem = findGem(gem.id);
+                                    if(requiredGem == null)
+                                        createToast("243");
+                                    //boolean yours = requiredGem.username.equals(username);
+                                    if (requiredGem != null && requiredGem.username.equals(username) && !gem.username.equals(username))
+                                        notifyGemLost(gem);
+                                    if (requiredGem == null) {
+                                        requiredGem = new Gem(gem.type, gem.username);
+                                        allGems.add(requiredGem);
+                                    }
+                                    updateGem(requiredGem, gem);
+                                    if (!requiredGem.username.equals(username) && requiredGem.marker != null) {
+                                        requiredGem.marker.remove();
+                                        requiredGem.marker = null;
+                                    }
+                                    if (requiredGem.username.equals(username) && requiredGem.marker == null)
+                                        addMarker(requiredGem);
+                                    Log.i("Here", "StartSubscription");
 
+                                }
+
+                                loaded = true;
                             }
-
-                            loaded = true;
+                            catch (Exception ex) {
+                               createToast("Handler:Done:Query:Background");
+                            }
                         }
+
+
+
 
                     });
                 }
@@ -272,6 +291,10 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
     void notifyGemLost(Gem gem)
     {
+        if(gem ==null) {
+            createToast("Something Null gem notify");
+            return;
+        }
         String type = gemType(gem.type);
         notification = new NotificationCompat.Builder(getApplicationContext())
                 .setContentTitle("Gem Lost")
@@ -280,15 +303,18 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                 .setSound(Settings.System.DEFAULT_NOTIFICATION_URI);
 
         NotificationManager notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-        notificationManager.notify(1,notification.build());
+        notificationManager.notify(notificationIndex,notification.build());
+        notificationIndex++;
     }
 
 
 
     void updateGem(Gem requiredGem, Gem gem)
     {
-        if(requiredGem == null)
+        if(requiredGem == null || gem ==null) {
+            createToast("Something Null gem or required gem");
             return;
+        }
         requiredGem.id = gem.id;
         requiredGem.isPlaced = gem.isPlaced;
         requiredGem.location = gem.location;
@@ -304,6 +330,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                return gem;
 
        }
+       createToast("Returned Null from findGem 324");
        return null;
     }
 
@@ -335,46 +362,53 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
     void placeGem(Gem gem){
         //When user presses place button
-        final int type = gem.type;
-        final String objectId = gem.id;
-        //GpsTracker gpsTracker = new GpsTracker(this);
-        ParseQuery query = new ParseQuery("Gem");
-        query.whereEqualTo("objectId", gem.id);
-        query.setLimit(1);
-        query.findInBackground(new FindCallback<ParseObject>() {
-            public void done(List<ParseObject> objects, ParseException e) {
-                if(e!=null)
-                {
-                    Toast.makeText(getApplicationContext(),"Network Error!", Toast.LENGTH_SHORT).show();
-                   // return;
-                }
-                else
-                {
-                    ParseObject parseObject = objects.get(0);
-                    ParseGeoPoint point = new ParseGeoPoint(gpsTracker.location.getLatitude(), gpsTracker.location.getLongitude());
-                    parseObject.put("location", point);
-                    parseObject.put("isPlaced", true);
-                    parseObject.put("type", type);
-                    parseObject.saveInBackground(new SaveCallback() {
-                        @Override
-                        public void done(ParseException e) {
-                            if(e!= null)
-                                Toast.makeText(getApplicationContext(),"Place failed",Toast.LENGTH_SHORT).show();
-                            else {
-                                Toast.makeText(getApplicationContext(), "Place Successful!", Toast.LENGTH_SHORT).show();
-                                Gem gem = findGem(objectId);
-                                if(gem!=null)
-                                gem.isPlaced = true;
-                                addMarker(gem);
-                                updateBagUI(gem,false);
-                            }
-
+        try {
+            final int type = gem.type;
+            final String objectId = gem.id;
+            //GpsTracker gpsTracker = new GpsTracker(this);
+            ParseQuery query = new ParseQuery("Gem");
+            query.whereEqualTo("objectId", gem.id);
+            query.setLimit(1);
+            query.findInBackground(new FindCallback<ParseObject>() {
+                public void done(List<ParseObject> objects, ParseException e) {
+                    if (e != null) {
+                        Toast.makeText(getApplicationContext(), "Network Error!", Toast.LENGTH_SHORT).show();
+                        // return;
+                    } else {
+                        ParseObject parseObject = objects.get(0);
+                        if (gpsTracker.location == null) {
+                            Toast.makeText(getApplicationContext(), "PLace failed! Try again", Toast.LENGTH_SHORT).show();
+                            return;
                         }
-                    });
-                }
+                        ParseGeoPoint point = new ParseGeoPoint(gpsTracker.location.getLatitude(), gpsTracker.location.getLongitude());
+                        parseObject.put("location", point);
+                        parseObject.put("isPlaced", true);
+                        parseObject.put("type", type);
+                        parseObject.saveInBackground(new SaveCallback() {
+                            @Override
+                            public void done(ParseException e) {
+                                if (e != null)
+                                    Toast.makeText(getApplicationContext(), "Place failed", Toast.LENGTH_SHORT).show();
+                                else {
+                                    Toast.makeText(getApplicationContext(), "Place Successful!", Toast.LENGTH_SHORT).show();
+                                    Gem gem = findGem(objectId);
+                                    if (gem != null)
+                                        gem.isPlaced = true;
+                                    addMarker(gem);
+                                    updateBagUI(gem, false);
+                                }
 
-            }
-        });
+                            }
+                        });
+                    }
+
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            createToast("placeGem exception");
+        }
 
 
         //Location currentLocation = gpsTracker.location;
@@ -420,6 +454,10 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
     Gem parseObjectToGem(ParseObject object)
     {
+        if( object ==null) {
+            createToast("ParseObjectToGem:object Null");
+            return null;
+        }
         ParseGeoPoint parseGeoPoint = object.getParseGeoPoint("location");
         Location location = new Location("dummyProvider");
         location.setLatitude(parseGeoPoint.getLatitude());
@@ -462,37 +500,15 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
     void addMarker(Gem gem)
     {
+        if( gem ==null) {
+            createToast("addMarker gem null");
+            return;
+        }
         Location gemLocation = gem.location;
         LatLng latLng = new LatLng(gemLocation.getLatitude(), gemLocation.getLongitude());
         gem.marker = mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
     }
-    //using multithreading implement timer1 and display map
-    void timer1(){
-      /*timer set on for 15 mins*/
-    }
-    void unplacedGems(){
-        //when timer1 is 0 and gemarray!=0,place the remaining gems in current location
-    }
-    // server time starts(actual timer)
-    //Play begins
-    void initialiseGems(){
-    }
 
-    void displayMap (){
-
-    }
-
-    void updateGemDisplay(){
-        //info about placed gems and displaying it on the map
-    }
-
-    void startLocationService() {
-
-    }
-
-    void getUserLocation() {
-
-    }
 
     public void loadGemsNearBy()
     {
@@ -507,36 +523,66 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         }
 
     }
-
+    float distanceToGrab = 4.0f;
+    ArrayList<Gem> takeGems = new ArrayList<>();
     void findGemsAtCurrentLocation()
     {
-        minDistance = 10.0f;
+        try {
+            minDistance = 10.0f;
 
-        final Location location  = gpsTracker.location;
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-            // grabGems.clear();
-             for(Gem gem : nearGems){
-                if(location.distanceTo(gem.location) <= minDistance) {
-                    if (findGrabGem(gem.id) == null && !gem.username.equals(username)) {
-                        grabGems.add(gem);
-                        updateGrabGemUI(gem, true);
-                    }
-                }
-                else
-                {
-                    if(findGrabGem(gem.id)!=null) {
-                        grabGems.remove(gem);
-                        updateGrabGemUI(gem, false);
-                    }
-                }
-             }
 
-             handler.postDelayed(this,200);
-            }
-        }, 100);
+            final Location location = gpsTracker.location;
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    // grabGems.clear();
+                    ArrayList<Gem> temp = new ArrayList<Gem>(nearGems);
+                    for (Gem gem : temp) {
+                        float distance = location.distanceTo(gem.location);
+                        if (distance <= minDistance) {
+                                if (findGrabGem(gem.id) == null && !gem.username.equals(username)) {
+                                    grabGems.add(gem);
+                                    if(distance > distanceToGrab)
+                                    updateGrabGemUI(gem, true, false);
+                                }
+                            } else {
+                                if (findGrabGem(gem.id) != null) {
+                                    grabGems.remove(gem);
+                                    takeGems.remove(gem);
+                                    updateGrabGemUI(gem, false, false);
+                                }
+                            }
+
+                    }
+
+                    for(Gem gem : grabGems)
+                    {
+                        float distance = location.distanceTo(gem.location);
+                        if(distance <= distanceToGrab)
+                        {
+                            if(takeGems.indexOf(gem)==-1){
+                                takeGems.add(gem);
+                                updateGrabGemUI(gem,true,true);
+                            }
+                        }
+                        else
+                        {
+                            if(takeGems.indexOf(gem)!=-1) {
+                                updateGrabGemUI(gem, true, false);
+                                takeGems.remove(gem);
+                            }
+                        }
+                    }
+
+                    handler.postDelayed(this, 200);
+                }
+            }, 200);
+        }
+        catch (Exception e)
+        {
+            createToast("Exception:findGemsAtCurrentLocation");
+        }
     }
 
     Gem findGrabGem(String objectId)
@@ -550,38 +596,44 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         return null;
     }
 
-    void verifyGrabGems()
+    Gem findTakeGem(String objectId)
     {
-        minDistance = 10.0f;
-        final Location location  = gpsTracker.location;
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                //grabGems.clear();
-                for(Gem gem : grabGems){
-                    if(location.distanceTo(gem.location) > minDistance || !gem.isPlaced)
-                        grabGems.remove(gem);
-                         updateGrabGemUI(gem, false);
-                }
-                handler.postDelayed(this,100);
-            }
-        }, 100);
+        for(Gem gem : takeGems){
+            if(gem != null && gem.id != null)
+                if(gem.id.equals(objectId))
+                    return gem;
 
+        }
+        return null;
     }
+
+
+
 
 
     List<String> grabGemObjectIds = new ArrayList<String>();
 
-    void updateGrabGemUI(Gem gem , boolean add)
+    void updateGrabGemUI(Gem gem , boolean add, boolean takable)
     {
-        if(gem == null)
+        if(gem == null) {
+            createToast("updateGramGemUI: gem null");
             return;
+        }
         String gemName = gemType(gem.type);
-
+        if(takable)
+            gemName = gemName + " Take";
         if(add){
-            adapter.add(gemName);
-            grabGemObjectIds.add(gem.id);
+           if(grabGemObjectIds.indexOf(gem.id)==-1) {
+               grabGemObjectIds.add(gem.id);
+               ids.add(gemName);
+           }
+           else
+           {
+               int position = grabGemObjectIds.indexOf(gem.id);
+               ids.set(position,gemName);
+
+           }
+           adapter.notifyDataSetChanged();
         }
         else
         {
@@ -646,12 +698,14 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         });
     }
 
-    List<Gem> bagGems = new ArrayList<>();
-    List<String> bagGemObjectIds = new ArrayList<>();
+    ArrayList<Gem> bagGems = new ArrayList<>();
+    ArrayList<String> bagGemObjectIds = new ArrayList<>();
     void updateBagUI(Gem gem , boolean add)
     {
-        if(gem == null)
+        if( gem ==null) {
+            createToast("gem null UpdateBagUI");
             return;
+        }
         String gemName = gemType(gem.type);
 
         if(add){
@@ -667,7 +721,13 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                 bagIds.remove(position);
                 bagAdapter.notifyDataSetChanged();
                 bagGemObjectIds.remove(gem.id);
-                bagGems.remove(gem);
+                boolean isThere = bagGems.remove(gem);
+                if(!isThere)
+                {
+                    createToast("NO ELEMENT!!!");
+                }
+                else
+                    totalGemsInBag--;
             }
             catch (Exception e)
             {
@@ -675,6 +735,11 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
             }
 
         }
+    }
+
+    void createToast(String message)
+    {
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
 
     String gemType(int type){
@@ -686,53 +751,103 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
             return "Bronze";
     }
 
-    int bagCapacity = 3;
+    int bagCapacity = 3, totalGemsInBag = 0;
     void onGrabGem(View view , int position){
-        if(bagGems.size()>= bagCapacity){
-            Toast.makeText(getApplicationContext(), "Bag Full!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        String id = grabGemObjectIds.get(position);
-        ParseQuery query = ParseQuery.getQuery("Gem");
-        query.whereEqualTo("objectId", id);
-        query.setLimit(1);
-        query.findInBackground(new FindCallback<ParseObject>() {
-            public void done(List<ParseObject> objects, ParseException e) {
-                if(objects.get(0).getBoolean("isPlaced"))
-                    grabGem(objects.get(0));
-                else
-                    Toast.makeText(getApplicationContext(), "Someone grabbed it already!", Toast.LENGTH_LONG).show();
 
+        try {
+            String id = grabGemObjectIds.get(position);
+            Gem gem = findGem(id);
+            if(takeGems.indexOf(gem) == -1)
+            {
+                createToast("Cannot Grab!");
+                return;
             }
-        });
+            if (totalGemsInBag >= bagCapacity) {
+                Toast.makeText(getApplicationContext(), "Bag Full!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            totalGemsInBag++;
 
+            updateGrabGemUI(gem, false, false);
+            ParseQuery query = ParseQuery.getQuery("Gem");
+            query.whereEqualTo("objectId", id);
+            query.setLimit(1);
+            query.findInBackground(new FindCallback<ParseObject>() {
+                public void done(List<ParseObject> objects, ParseException e) {
+                    if (objects.size() != 0 && objects.get(0).getBoolean("isPlaced"))
+                        grabGem(objects.get(0));
+                    else {
+                        Toast.makeText(getApplicationContext(), "Someone grabbed it already!", Toast.LENGTH_SHORT).show();
+                        totalGemsInBag--;
+                    }
+
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            createToast("Here is the bug! 752");
+        }
 
 
        // loadAllGems();
     }
 
+    void saveBagData()
+    {
+        editor = sharedPreferences.edit();
+        try {
+            editor.putString("bagGems",ObjectSerializer.serialize(bagGems));
+            editor.putString("bagGemObjectIds", ObjectSerializer.serialize(bagGemObjectIds));
+            editor.apply();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void bagDataInitialize()
+    {
+        ArrayList<Gem> bagGemsT = new ArrayList<>();
+        try {
+            //bagGemsT = ObjectSerializer.deserialize(sharedPreferences.getString("bagGems", ObjectSerializer.serialize(new ArrayList<Gem>())));
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
 
     void grabGem(ParseObject object)
     {
-        final String objectId = object.getObjectId();
-        object.put("isPlaced", false);
-        object.put("location", new ParseGeoPoint(0,0));
-        object.put("username", username);
-        object.saveInBackground(new SaveCallback() {
-            @Override
-            public void done(ParseException e) {
-                if(e==null) {
-                    Toast.makeText(getApplicationContext(), "Successfully grabbed!", Toast.LENGTH_LONG).show();
-                    Gem gem  = findGrabGem(objectId);
-                    updateGrabGemUI(gem, false);
-                    gem.isPlaced = false;
-                    gem.username = username;
-                    updateBagUI(gem, true);
+        try {
+            final String objectId = object.getObjectId();
+            object.put("isPlaced", false);
+            object.put("location", new ParseGeoPoint(0, 0));
+            object.put("username", username);
+            object.saveInBackground(new SaveCallback() {
+                @Override
+                public void done(ParseException e) {
+                    if (e == null) {
+                        Toast.makeText(getApplicationContext(), "Successfully grabbed!", Toast.LENGTH_SHORT).show();
+                        Gem gem = findGem(objectId);
+                        updateGrabGemUI(gem, false, false);
+                        gem.isPlaced = false;
+                        gem.username = username;
+                        updateBagUI(gem, true);
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Network Error!", Toast.LENGTH_SHORT).show();
+                        Gem gem = findGrabGem(objectId);
+                        updateGrabGemUI(gem, true, false);
+                        totalGemsInBag--;
+                    }
                 }
-                    else
-                    Toast.makeText(getApplicationContext(), "Network Error!", Toast.LENGTH_LONG).show();
-            }
-        });
+            });
+        }
+        catch (Exception e)
+        {
+            createToast("Exception:grabGem");
+        }
     }
 
     void onClickBag()
