@@ -176,7 +176,8 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
             Location lastKnownLocation =null;
             if(gpsTracker.canGetLocation())
             {
-                lastKnownLocation = gpsTracker.getLocation();
+                gpsTracker.location = gpsTracker.getLocation();
+                lastKnownLocation = gpsTracker.location;
                 LatLng yourLoc = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
                 //mMap.addMarker(new MarkerOptions().position(yourLoc).title("Marker in User Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(yourLoc,15));
@@ -519,11 +520,13 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         }
 
     }
-
+    float distanceToGrab = 3.0f;
+    ArrayList<Gem> takeGems = new ArrayList<>();
     void findGemsAtCurrentLocation()
     {
         try {
             minDistance = 10.0f;
+
 
             final Location location = gpsTracker.location;
             final Handler handler = new Handler();
@@ -567,6 +570,20 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         }
         return null;
     }
+
+    Gem findTakeGem(String objectId)
+    {
+        for(Gem gem : takeGems){
+            if(gem != null && gem.id != null)
+                if(gem.id.equals(objectId))
+                    return gem;
+
+        }
+        return null;
+    }
+
+
+
 
     void verifyGrabGems()
     {
@@ -721,29 +738,35 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
     int bagCapacity = 3, totalGemsInBag = 0;
     void onGrabGem(View view , int position){
-        if(totalGemsInBag >= bagCapacity){
-            Toast.makeText(getApplicationContext(), "Bag Full!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        totalGemsInBag++;
-        String id = grabGemObjectIds.get(position);
-        Gem gem  = findGrabGem(id);
-        updateGrabGemUI(gem, false);
-        ParseQuery query = ParseQuery.getQuery("Gem");
-        query.whereEqualTo("objectId", id);
-        query.setLimit(1);
-        query.findInBackground(new FindCallback<ParseObject>() {
-            public void done(List<ParseObject> objects, ParseException e) {
-                if(objects.get(0).getBoolean("isPlaced"))
-                    grabGem(objects.get(0));
-                else {
-                    Toast.makeText(getApplicationContext(), "Someone grabbed it already!", Toast.LENGTH_SHORT).show();
-                    totalGemsInBag--;
-                }
 
+        try {
+            if (totalGemsInBag >= bagCapacity) {
+                Toast.makeText(getApplicationContext(), "Bag Full!", Toast.LENGTH_SHORT).show();
+                return;
             }
-        });
+            totalGemsInBag++;
+            String id = grabGemObjectIds.get(position);
+            Gem gem = findGrabGem(id);
+            updateGrabGemUI(gem, false);
+            ParseQuery query = ParseQuery.getQuery("Gem");
+            query.whereEqualTo("objectId", id);
+            query.setLimit(1);
+            query.findInBackground(new FindCallback<ParseObject>() {
+                public void done(List<ParseObject> objects, ParseException e) {
+                    if (objects.size() != 0 && objects.get(0).getBoolean("isPlaced"))
+                        grabGem(objects.get(0));
+                    else {
+                        Toast.makeText(getApplicationContext(), "Someone grabbed it already!", Toast.LENGTH_SHORT).show();
+                        totalGemsInBag--;
+                    }
 
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            createToast("Here is the bug! 752");
+        }
 
 
        // loadAllGems();
@@ -786,7 +809,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                 public void done(ParseException e) {
                     if (e == null) {
                         Toast.makeText(getApplicationContext(), "Successfully grabbed!", Toast.LENGTH_SHORT).show();
-                        Gem gem = findGrabGem(objectId);
+                        Gem gem = findGem(objectId);
                         updateGrabGemUI(gem, false);
                         gem.isPlaced = false;
                         gem.username = username;

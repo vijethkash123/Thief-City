@@ -184,6 +184,8 @@ public class GpsTracker extends Service implements LocationListener {
         Log.i("location","changed");
         if(myActivity != null)
         myActivity.loadGemsNearBy();
+        if(location == null)
+            return;
         LatLng yourLoc = new LatLng(location.getLatitude(), location.getLongitude());
         location.setLatitude(locationLocal.getLatitude());
         location.setLongitude(locationLocal.getLongitude());
