@@ -141,6 +141,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        gpsTracker =new GpsTracker(this, mMap, SecondGamePlayActivity.this);
 
         // Add a marker in Sydney and move the camera
        // LatLng silver = new LatLng(13.022775, 76.102263);
@@ -162,7 +163,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
     public void checkPermissionAndStart()
     {
-        gpsTracker =new GpsTracker(this, mMap, SecondGamePlayActivity.this);
+
 
 
 
@@ -174,6 +175,8 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         }
         else{
             Location lastKnownLocation =null;
+            if(gpsTracker.location==null)
+                gpsTracker.getLocation();
             if(gpsTracker.canGetLocation())
             {
                 gpsTracker.location = gpsTracker.getLocation();
@@ -520,7 +523,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         }
 
     }
-    float distanceToGrab = 3.0f;
+    float distanceToGrab = 4.0f;
     ArrayList<Gem> takeGems = new ArrayList<>();
     void findGemsAtCurrentLocation()
     {
@@ -536,16 +539,38 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                     // grabGems.clear();
                     ArrayList<Gem> temp = new ArrayList<Gem>(nearGems);
                     for (Gem gem : temp) {
-                        if (location.distanceTo(gem.location) <= minDistance) {
-                            if (findGrabGem(gem.id) == null && !gem.username.equals(username)) {
-                                grabGems.add(gem);
-                                updateGrabGemUI(gem, true);
+                        float distance = location.distanceTo(gem.location);
+                        if (distance <= minDistance) {
+                                if (findGrabGem(gem.id) == null && !gem.username.equals(username)) {
+                                    grabGems.add(gem);
+                                    if(distance > distanceToGrab)
+                                    updateGrabGemUI(gem, true, false);
+                                }
+                            } else {
+                                if (findGrabGem(gem.id) != null) {
+                                    grabGems.remove(gem);
+                                    takeGems.remove(gem);
+                                    updateGrabGemUI(gem, false, false);
+                                }
+                            }
+
+                    }
+
+                    for(Gem gem : grabGems)
+                    {
+                        float distance = location.distanceTo(gem.location);
+                        if(distance <= distanceToGrab)
+                        {
+                            if(takeGems.indexOf(gem)==-1){
+                                takeGems.add(gem);
+                                updateGrabGemUI(gem,true,true);
                             }
                         }
-                        else {
-                            if (findGrabGem(gem.id) != null) {
-                                grabGems.remove(gem);
-                                updateGrabGemUI(gem, false);
+                        else
+                        {
+                            if(takeGems.indexOf(gem)!=-1) {
+                                updateGrabGemUI(gem, true, false);
+                                takeGems.remove(gem);
                             }
                         }
                     }
@@ -585,40 +610,30 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
 
 
-    void verifyGrabGems()
-    {
-        minDistance = 10.0f;
-        final Location location  = gpsTracker.location;
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                //grabGems.clear();
-                for(Gem gem : grabGems){
-                    if(location.distanceTo(gem.location) > minDistance || !gem.isPlaced)
-                        grabGems.remove(gem);
-                         updateGrabGemUI(gem, false);
-                }
-                handler.postDelayed(this,100);
-            }
-        }, 100);
-
-    }
-
 
     List<String> grabGemObjectIds = new ArrayList<String>();
 
-    void updateGrabGemUI(Gem gem , boolean add)
+    void updateGrabGemUI(Gem gem , boolean add, boolean takable)
     {
         if(gem == null) {
             createToast("updateGramGemUI: gem null");
             return;
         }
         String gemName = gemType(gem.type);
-
+        if(takable)
+            gemName = gemName + " Take";
         if(add){
-            adapter.add(gemName);
-            grabGemObjectIds.add(gem.id);
+           if(grabGemObjectIds.indexOf(gem.id)==-1) {
+               grabGemObjectIds.add(gem.id);
+               ids.add(gemName);
+           }
+           else
+           {
+               int position = grabGemObjectIds.indexOf(gem.id);
+               ids.set(position,gemName);
+
+           }
+           adapter.notifyDataSetChanged();
         }
         else
         {
@@ -740,14 +755,20 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
     void onGrabGem(View view , int position){
 
         try {
+            String id = grabGemObjectIds.get(position);
+            Gem gem = findGem(id);
+            if(takeGems.indexOf(gem) == -1)
+            {
+                createToast("Cannot Grab!");
+                return;
+            }
             if (totalGemsInBag >= bagCapacity) {
                 Toast.makeText(getApplicationContext(), "Bag Full!", Toast.LENGTH_SHORT).show();
                 return;
             }
             totalGemsInBag++;
-            String id = grabGemObjectIds.get(position);
-            Gem gem = findGrabGem(id);
-            updateGrabGemUI(gem, false);
+
+            updateGrabGemUI(gem, false, false);
             ParseQuery query = ParseQuery.getQuery("Gem");
             query.whereEqualTo("objectId", id);
             query.setLimit(1);
@@ -810,14 +831,14 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                     if (e == null) {
                         Toast.makeText(getApplicationContext(), "Successfully grabbed!", Toast.LENGTH_SHORT).show();
                         Gem gem = findGem(objectId);
-                        updateGrabGemUI(gem, false);
+                        updateGrabGemUI(gem, false, false);
                         gem.isPlaced = false;
                         gem.username = username;
                         updateBagUI(gem, true);
                     } else {
                         Toast.makeText(getApplicationContext(), "Network Error!", Toast.LENGTH_SHORT).show();
                         Gem gem = findGrabGem(objectId);
-                        updateGrabGemUI(gem, true);
+                        updateGrabGemUI(gem, true, false);
                         totalGemsInBag--;
                     }
                 }

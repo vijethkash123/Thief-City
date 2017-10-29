@@ -117,12 +117,14 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
         //LatLng stage = new LatLng(13.024427, 76.103561);
         //mMap.addMarker(new MarkerOptions().position(stage).title("Marker in Stage"));
         //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(stage,15));
+        gpsTracker =new GpsTracker(this, mMap, GamePlayActivity.this);
         checkPermissionAndStart();
 
     }
 
      public void checkPermissionAndStart()
     {
+        //gpsTracker =new GpsTracker(this, mMap, GamePlayActivity.this);
         if(Build.VERSION.SDK_INT >= 23 && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
         }
@@ -133,11 +135,9 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
 
     void startLocationService()
     {
-        gpsTracker =new GpsTracker(this, mMap, GamePlayActivity.this);
         Location lastKnownLocation;
         if(gpsTracker.canGetLocation())
         {
-            gpsTracker.location = gpsTracker.getLocation();
             //LatLng yourLoc = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
             //mMap.addMarker(new MarkerOptions().position(yourLoc).title("Marker in User Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(13.0173608,76.0923321),15)); // our col loc here
@@ -145,7 +145,7 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
             //Location loc1 = gpsTracker.getLocation();
             //Location loc2 = gpsTracker.getLocation();
 
-
+        Log.i("Here", "Start Service");
 
             //float distanceInMeters = loc1.distanceTo(loc2);
 
@@ -199,6 +199,8 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
         Location location = gpsTracker.location;
         if(location == null) {
             Toast.makeText(getApplicationContext(), "PLace failed! Try again", Toast.LENGTH_SHORT).show();
+            gpsTracker.getLocation();
+            checkPermissionAndStart();
             return;
         }
         final LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
@@ -221,7 +223,7 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
                     gemIndex++;
                     editor.putInt("avusfq", gemIndex);
                     editor.apply();
-                    if(gemIndex<15)
+                    if(gemIndex<2)
                         startGemPlacementProcess();
                     else
                         loadSecondGamePlayActivity();

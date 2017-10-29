@@ -278,6 +278,7 @@ public class GpsTracker extends Service implements LocationListener {
             public void run() {
                 if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
                 {
+                    getLocation();
                     if(firstActivity!=null)
                         firstActivity.checkPermissionAndStart();
                     else
@@ -285,8 +286,8 @@ public class GpsTracker extends Service implements LocationListener {
                             myActivity.checkPermissionAndStart();
                 }
                 else
-                    handler.postDelayed(this,3000);
+                    handler.postDelayed(this,300);
             }
-        },3000);
+        },300);
     }
 }
