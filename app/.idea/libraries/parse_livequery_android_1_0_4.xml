@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="parse-livequery-android-1.0.4">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.android/build-cache/413ce8fd708e75579ef500f58013eaf586da4429/output/res" />
+      <root url="jar://$USER_HOME$/.android/build-cache/413ce8fd708e75579ef500f58013eaf586da4429/output/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.parse/parse-livequery-android/1.0.4/98aab93b8f9c09508b34fe406912d9755e1802cc/parse-livequery-android-1.0.4-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
