@@ -71,5 +71,17 @@
         android:onClick="discard"
         android:text="Discard" />
 
+    <TextView
+        android:id="@+id/locTV"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="99dp"
+        android:text="TV"
+        android:textColor="@android:color/white"
+        android:textStyle="bold" />
+
 
 </RelativeLayout>

@@ -43,9 +43,13 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".SignInActivity"
-            android:label="@string/title_activity_sign_in"
+            android:label="Thief City"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter android:label="Thief City">
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".InstructionsActivity"
@@ -59,11 +63,6 @@
         <activity
             android:name=".PolygonDraw"
             android:label="@string/title_activity_polygon_draw">
-            <intent-filter android:label="Thief City">
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
     </application>
 

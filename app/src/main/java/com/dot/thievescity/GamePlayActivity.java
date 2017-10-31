@@ -10,6 +10,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -30,6 +31,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
+import com.google.gson.Gson;
 import com.google.maps.android.PolyUtil;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
@@ -37,9 +39,12 @@ import com.parse.ParseObject;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 
+import java.sql.Struct;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class GamePlayActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -54,8 +59,8 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
     CountDownTimer myTimer;
     public HashMap<String , Marker> markers = new HashMap<>();
     Location startLocation;
-    SharedPreferences sharedPreferences;
-    SharedPreferences.Editor editor;
+    public SharedPreferences sharedPreferences;
+    public SharedPreferences.Editor editor;
     List<Polygon> permittedPolygons, restrictedPolygons;
 
     @Override
@@ -70,6 +75,11 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
         sharedPreferences = GamePlayActivity.this.getSharedPreferences("com.dot.thievescity",Context.MODE_PRIVATE);
         editor = sharedPreferences.edit();
         loadMyGems();
+        if(sharedPreferences.getInt("activityOrder",0)==1)
+        {
+            return;
+        }
+        editor.putInt("activityOrder", 1);
         startGemPlacementProcess();
 
     }
@@ -88,6 +98,7 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
                 //                                          int[] grantResults)
                 // to handle the case where the user grants the permission. See the documentation
                 // for ActivityCompat#requestPermissions for more details.
+                gpsTracker =new GpsTracker(this, mMap, GamePlayActivity.this);
                 startLocationService();
                 return;
             }
@@ -108,6 +119,10 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        if(sharedPreferences.getInt("activityOrder",0)==1)
+        {
+            restartFromLocation();
+        }
 
         // Add a marker in Sydney and move the camera
        // LatLng silver = new LatLng(13.022775, 76.102263);
@@ -121,9 +136,20 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
         //LatLng stage = new LatLng(13.024427, 76.103561);
         //mMap.addMarker(new MarkerOptions().position(stage).title("Marker in Stage"));
         //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(stage,15));
+        if(Build.VERSION.SDK_INT < 23)
         gpsTracker =new GpsTracker(this, mMap, GamePlayActivity.this);
         checkPermissionAndStart();
 
+    }
+
+
+    public void restartGPS()
+    {
+        gpsTracker.stopUsingGPS();
+        gpsTracker = null;
+        if(Build.VERSION.SDK_INT < 23)
+            gpsTracker =new GpsTracker(this, mMap, GamePlayActivity.this);
+        checkPermissionAndStart();
     }
 
      public void checkPermissionAndStart()
@@ -139,9 +165,9 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
 
     void startLocationService()
     {
+        if(gpsTracker.location == null)
+            gpsTracker.getLocation();
         Location lastKnownLocation;
-        if(gpsTracker.canGetLocation())
-        {
             //LatLng yourLoc = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
             //mMap.addMarker(new MarkerOptions().position(yourLoc).title("Marker in User Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(13.0173608,76.0923321),15));
@@ -153,15 +179,55 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
             //Location loc1 = gpsTracker.getLocation();
             //Location loc2 = gpsTracker.getLocation();
 
-        Log.i("Here", "Start Service");
+
 
             //float distanceInMeters = loc1.distanceTo(loc2);
 
             //Toast.makeText(this,distanceInMeters+"",Toast.LENGTH_LONG).show();
+
+
+    }
+
+    void restartFromLocation()
+    {
+        String s = sharedPreferences.getString("locationCurrent", "");
+        gemIndex = sharedPreferences.getInt("pepeJeans", 0);
+        if(s.equals(""))
+        {
+            createToast("Restarting app");
+            finish();
         }
-        else Toast.makeText(this,"Can't get location",Toast.LENGTH_SHORT).show();
+        Gson gson = new Gson();
+        LatLng location = gson.fromJson(s,LatLng.class);
+       //LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        Log.i("Latln",location.longitude+"");
+        Marker marker = mMap.addMarker(new MarkerOptions().position(location).title("Marker in User Location")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+        createToast("Go the location with red marker");
+        createToast("to continue the game");
+        handlerTracker(location, marker);
+    }
 
+    void handlerTracker(final LatLng latLng, final Marker marker)
+    {
+        final Handler handler =  new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+               Location location = new Location("thisProvider");
+                location.setLatitude(latLng.latitude);
+                location.setLongitude(latLng.longitude);
+                Location location2 = gpsTracker.location;
+                if(location2.distanceTo(location) < 15.0f)
+                {
+                    startGemPlacementProcess();
+                    marker.remove();
+                }
+                else
+                    handler.postDelayed(this, 3000);
 
+            }
+        }, 4000);
     }
 
     public boolean isLocationInPolygon(Polygon polygon, Location location)
@@ -170,24 +236,36 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
         return PolyUtil.containsLocation(latLng,polygon.getPoints(), false);
 
     }
-
+boolean first;
     void startGemPlacementProcess()
     {
       //  startLocationService = gpsTracker.location;
         final TextView timerText = findViewById(R.id.timer_text);
         int timeForEachGem = 60*1000;
+        first = true;
        // Gem myGem = myGems.get(gemIndex);
             myTimer = new CountDownTimer(timeForEachGem, 1000) {
                 public void onTick(long millisUntilFinished) {
+                    if(first)
+                    {
+                        Gson gson = new Gson();
+                        LatLng latLng = new LatLng(gpsTracker.location.getLatitude(),gpsTracker.location.getLongitude());
+                        String s = gson.toJson(latLng);
+                        editor.putString("locationCurrent", s);
+                        editor.apply();
+                        first = false;
+                    }
                     timerText.setText(millisUntilFinished / 1000 + "");
                     Log.i("Time:", millisUntilFinished / 1000 + "");
                 }
 
                 public void onFinish() {
                     Toast.makeText(getApplicationContext(), "Automatically placing at current location", Toast.LENGTH_LONG).show();
+                    first = true;
                     if(!isPlaceable(gpsTracker.location))
                     {
                         createToast("Cannot place here!! Placing at random location!");
+                        placeAtRandomLocation();
                         return;
                     }
                     placeGem();
@@ -199,14 +277,29 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
         //Log.i("DoneTimer", "Done");
 
     }
+    boolean isRandom = false;
+    int x;
+    List<LatLng> randomLocations = new ArrayList<>();
+    void placeAtRandomLocation()
+    {
+        int size = randomLocations.size();
+        Random random = new Random();
+        x = random.nextInt(size);
+        isRandom = true;
+        myTimer.cancel();
+        placeGem();
+
+
+    }
 
     public void onGemPlace(View view)
     {
-        if(!isPlaceable(gpsTracker.location))
+        if(gpsTracker.location == null || !isPlaceable(gpsTracker.location))
         {
-           createToast("Cannot place here!!");
-            return;
+           //createToast("Cannot place here!!");
+           // return;
         }
+        first = true;
         myTimer.cancel();
         placeGem();
 
@@ -237,6 +330,11 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
         //mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
         //Location currentLocation = gpsTracker.location;
         ParseGeoPoint point = new ParseGeoPoint(location.getLatitude(), location.getLongitude());
+        if(isRandom){
+            LatLng latLng1 = randomLocations.get(x);
+            point = new ParseGeoPoint(latLng1.latitude, latLng1.longitude);
+            isRandom = false;
+        }
         parseObject.put("location", point);
         parseObject.put("type", type);
         parseObject.put("isPlaced", true);
@@ -251,7 +349,7 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
                     Marker marker =  mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
                     markers.put(id, marker);
                     gemIndex++;
-                    editor.putInt("avusfq", gemIndex);
+                    editor.putInt("pepeJeans", gemIndex);
                     editor.apply();
                     if(gemIndex<15)
                         startGemPlacementProcess();

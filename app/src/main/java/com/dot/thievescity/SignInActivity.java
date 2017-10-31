@@ -30,12 +30,7 @@ public class SignInActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(isGameStarted())
-        {
-            Intent toGame = new Intent(getApplicationContext(),SecondGamePlayActivity.class);
-            startActivity(toGame);
-            finish();
-        }
+        checkGameStarted();
         setContentView(R.layout.activity_sign_in);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -50,10 +45,21 @@ public class SignInActivity extends AppCompatActivity {
         });
     }
 
-    boolean isGameStarted()
+    void checkGameStarted()
     {
         SharedPreferences sharedPreferences = this.getSharedPreferences("com.dot.thievescity", Context.MODE_PRIVATE);
-        return sharedPreferences.getBoolean("secondStarted", false);
+        int order = sharedPreferences.getInt("activityOrder", 0);
+
+        switch (order)
+        {
+            case 0 : break;
+            case 1 : Intent toGame = new Intent(getApplicationContext(),GamePlayActivity.class);
+                startActivity(toGame);
+                finish();break;
+            case 2 : Intent toSecond = new Intent(getApplicationContext(),SecondGamePlayActivity.class);
+                startActivity(toSecond);
+                finish();break;
+        }
     }
 
     public void onSignIn(View view)

@@ -40,6 +40,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.parse.FindCallback;
 //mport com.parse.LiveQueryException;
 import com.parse.ParseException;
@@ -55,6 +57,7 @@ import android.os.Handler;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
@@ -65,7 +68,7 @@ import java.util.List;
 
 public class SecondGamePlayActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    private GoogleMap mMap;
+    public GoogleMap mMap;
     LocationManager locationManager;
     LocationListener locationListener;
     GpsTracker gpsTracker;
@@ -99,12 +102,13 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         username  = ParseUser.getCurrentUser().getUsername();
         sharedPreferences = this.getSharedPreferences("com.dot.thievescity", Context.MODE_PRIVATE);
         editor = sharedPreferences.edit();
-        editor.putBoolean("secondStarted", true);
+        editor.putInt("activityOrder", 2);
         editor.apply();
         loadMyGems();
         loadAllGems();
         initializeListView();
         initializeBag();
+        //bagDataInitialize();
         //allGems.get(allGems.indexOf("Sanath"));
         //startGemPlacementProcess();
 
@@ -127,6 +131,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                 return;
             }
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+            gpsTracker.getLocation();
         }
     }
 
@@ -181,11 +186,11 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                 gpsTracker.getLocation();
             if(gpsTracker.canGetLocation())
             {
-                gpsTracker.location = gpsTracker.getLocation();
-                lastKnownLocation = gpsTracker.location;
-                LatLng yourLoc = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
+               // gpsTracker.location = gpsTracker.getLocation();
+                //lastKnownLocation = gpsTracker.location;
+                //LatLng yourLoc = new LatLng();
                 //mMap.addMarker(new MarkerOptions().position(yourLoc).title("Marker in User Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(yourLoc,15));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(13.0173608,76.0923321),15));
 
                 // Location loc1 = gpsTracker.getLocation();
                 //Location loc2 = gpsTracker.getLocation();
@@ -481,8 +486,13 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                     allGems = new ArrayList<Gem>();
                     for(ParseObject object : objects){
                         Gem gem = parseObjectToGem(object);
-                        if(gem.username.equals(username))
+                        if(gem.username.equals(username) && gem.isPlaced)
                         addMarker(gem);
+                        if(gem.username.equals(username) && !gem.isPlaced)
+                        {
+                            if(grabGemObjectIds.indexOf(gem.id)==-1)
+                                updateBagUI(gem, true);
+                        }
                         allGems.add(gem);
                         date = object.getUpdatedAt();
                     }
@@ -525,7 +535,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         }
 
     }
-    float distanceToGrab = 4.0f;
+    float distanceToGrab = 5.3f;
     ArrayList<Gem> takeGems = new ArrayList<>();
     void findGemsAtCurrentLocation()
     {
@@ -798,20 +808,30 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
     void saveBagData()
     {
         editor = sharedPreferences.edit();
-        try {
-            editor.putString("bagGems",ObjectSerializer.serialize(bagGems));
-            editor.putString("bagGemObjectIds", ObjectSerializer.serialize(bagGemObjectIds));
+            Gson gson = new Gson();
+            String bagGemsJson = gson.toJson(bagGems);
+            String bagOId = gson.toJson(bagGemObjectIds);
+            editor.putString("bagGems", bagGemsJson);
+            editor.putString("bagGemObjectIds",bagOId);
             editor.apply();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
     }
 
     void bagDataInitialize()
     {
         ArrayList<Gem> bagGemsT = new ArrayList<>();
         try {
-            bagGemsT = (ArrayList<Gem>) ObjectSerializer.deserialize(sharedPreferences.getString("bagGems", ObjectSerializer.serialize(new ArrayList<Gem>())));
+           String s = sharedPreferences.getString("bagGems", "noData");
+            if(s.equals("noData"))
+                return;
+            Gson gson = new Gson();
+            Type listOfGems = new TypeToken<List<Gem>>(){}.getType();
+            bagGemsT = (ArrayList) gson.fromJson(s,listOfGems);
+            for(Gem gem : bagGemsT)
+            {
+                updateBagUI(gem,true);
+            }
+
         }
         catch (Exception e)
         {

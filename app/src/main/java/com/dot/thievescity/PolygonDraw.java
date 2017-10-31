@@ -6,6 +6,7 @@ import android.location.Location;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.dot.thievescity.utils.GpsTracker;
@@ -29,6 +30,7 @@ public class PolygonDraw extends FragmentActivity implements OnMapReadyCallback 
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
     int i =0;
+    TextView textView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +42,7 @@ public class PolygonDraw extends FragmentActivity implements OnMapReadyCallback 
         mapFragment.getMapAsync(this);
         sharedPreferences = this.getSharedPreferences("com.dot.thievescity", Context.MODE_PRIVATE);
         editor = sharedPreferences.edit();
+        textView = (TextView) findViewById(R.id.locTV);
     }
 
 
@@ -69,6 +72,7 @@ public class PolygonDraw extends FragmentActivity implements OnMapReadyCallback 
 
     public void addPoint(View view)
     {
+        textView.setText("TV");
         Location location = gpsTracker.location;
         LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
         myList.add(latLng);
@@ -92,6 +96,13 @@ Polygon polygon;
         String myListJSON = gson.toJson(myList);
 
             editor.putString("polygonsMce"+ i,myListJSON);
+            editor.apply();
+        String text = "";
+        for(LatLng latLng: myList)
+        {
+            text = text + "Location: " + latLng.latitude + ", " + latLng.longitude + "\n";
+        }
+        textView.setText(text);
             i++;
             myList.clear();
     }

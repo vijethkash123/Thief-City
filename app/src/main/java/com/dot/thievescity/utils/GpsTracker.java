@@ -24,6 +24,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.gson.Gson;
 
 /**
  * Ahmet Ertugrul OZCAN
@@ -68,7 +69,7 @@ public class GpsTracker extends Service implements LocationListener {
         this.mContext = context;
         this.mMap=map;
         this.myActivity = myActivity;
-        //location = new Location("dummyProvider");
+        location = new Location("dummyProvider");
         location = getLocation();
     }
 
@@ -76,6 +77,7 @@ public class GpsTracker extends Service implements LocationListener {
         this.mContext = context;
         this.mMap=map;
         this.firstActivity = firstActivity;
+        location = new Location("dummyProvider");
         location = getLocation();
     }
      public GpsTracker(Context context, GoogleMap mMap)
@@ -144,6 +146,9 @@ public class GpsTracker extends Service implements LocationListener {
                         }
                         onOnce = true;
                     }
+
+                    if(location==null)
+                        location = new Location("dummyProvider");
                 }
             }
         }
@@ -182,19 +187,26 @@ public class GpsTracker extends Service implements LocationListener {
     public void onLocationChanged(Location locationLocal)
     {
 
-        Log.i("location","changed");
-        if(myActivity != null)
-        myActivity.loadGemsNearBy();
-        if(location == null)
-            return;
-        LatLng yourLoc = new LatLng(location.getLatitude(), location.getLongitude());
+        Log.i("location","changedfgg");
         location.setLatitude(locationLocal.getLatitude());
         location.setLongitude(locationLocal.getLongitude());
+        LatLng yourLoc = new LatLng(location.getLatitude(), location.getLongitude());
+
+        if(location == null)
+            return;
+        if(myActivity != null)
+            myActivity.loadGemsNearBy();
         //mMap.clear();
         if(currentLocationMarker!=null)
             currentLocationMarker.remove();
-         currentLocationMarker = mMap.addMarker(new MarkerOptions().position(yourLoc).title("Marker in User Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+         currentLocationMarker = mMap.addMarker(new MarkerOptions().position(yourLoc).title("Marker in User Location")
+                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+        if(firstActivity!=null)
+        {
+
+        }
        // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(yourLoc,15));
+        Log.i("Here", "Locationlast");
     }
 
     @Override
@@ -281,7 +293,7 @@ public class GpsTracker extends Service implements LocationListener {
                 {
                     getLocation();
                     if(firstActivity!=null)
-                        firstActivity.checkPermissionAndStart();
+                        firstActivity.restartGPS();
                     else
                         if(myActivity!=null)
                             myActivity.checkPermissionAndStart();
