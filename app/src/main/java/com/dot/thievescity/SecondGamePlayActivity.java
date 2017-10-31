@@ -1,7 +1,6 @@
 package com.dot.thievescity;
 
 import android.Manifest;
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
@@ -10,9 +9,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.media.audiofx.BassBoost;
 import android.os.Build;
-import android.os.CountDownTimer;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -22,15 +19,11 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
-import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.daimajia.androidanimations.library.Techniques;
-import com.daimajia.androidanimations.library.YoYo;
 import com.dot.thievescity.utils.GpsTracker;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -38,28 +31,25 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.parse.FindCallback;
 //mport com.parse.LiveQueryException;
+import com.parse.LiveQueryException;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
 //import com.parse.ParseLiveQueryClient;
+import com.parse.ParseLiveQueryClient;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
+import com.parse.SubscriptionHandling;
 //import com.parse.SubscriptionHandling;
 import android.os.Handler;
 
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.lang.reflect.Type;
-import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -207,22 +197,22 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         }
     }
 
+    List<Gem> liveObjects = new ArrayList<>();
+
     void startSubscription()
     {
-       /* ParseLiveQueryClient parseLiveQueryClient = ParseLiveQueryClient.Factory.getClient();
+        ParseLiveQueryClient parseLiveQueryClient = ParseLiveQueryClient.Factory.getClient();
         ParseQuery<ParseObject> parseQuery = ParseQuery.getQuery("Gem");
 
         SubscriptionHandling<ParseObject> subscriptionHandling = parseLiveQueryClient.subscribe(parseQuery);
 
-       /* subscriptionHandling.handleEvents(new SubscriptionHandling.HandleEventsCallback<ParseObject>() {
+        subscriptionHandling.handleEvents(new SubscriptionHandling.HandleEventsCallback<ParseObject>() {
             @Override
             public void onEvents(ParseQuery<ParseObject> query, SubscriptionHandling.Event event, ParseObject object) {
                 // HANDLING all events
                 Gem gem = parseObjectToGem(object);
-                Gem requiredGem = findGem(gem.id);
-                updateGem(requiredGem, gem);
-                Log.i("Changes", requiredGem.id);
-                Toast.makeText(getApplicationContext(),"Subscribe successful", Toast.LENGTH_LONG).show();
+                liveObjects.add(gem);
+                //Toast.makeText(getApplicationContext(),"Username:"+gem.username ,Toast.LENGTH_SHORT).show();
 
             }
         });
@@ -233,9 +223,44 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                 Toast.makeText(getApplicationContext(),"Error", Toast.LENGTH_LONG).show();
             }
         });
-        */
 
         final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if(liveObjects.size()==0)
+                {
+                    handler.postDelayed(this,300);
+                    return;
+                }
+                for(Gem gem : liveObjects) {
+                    //Gem gem = liveObjects.get(0);
+                    Gem requiredGem = findGem(gem.id);
+                    //if(requiredGem == null)
+                    //createToast("243");
+                    //boolean yours = requiredGem.username.equals(username);
+                    if (requiredGem != null && requiredGem.username.equals(username) && !gem.username.equals(username))
+                        notifyGemLost(gem);
+                    if (requiredGem == null) {
+                        requiredGem = new Gem(gem.type, gem.username);
+                        allGems.add(requiredGem);
+                    }
+                    updateGem(requiredGem, gem);
+                    if (!requiredGem.username.equals(username) && requiredGem.marker != null) {
+                        requiredGem.marker.remove();
+                        requiredGem.marker = null;
+                    }
+                    if (requiredGem.username.equals(username) && requiredGem.marker == null)
+                        addMarker(requiredGem);
+                    Log.i("Here", gem.username);
+                    liveObjects.remove(gem);
+                }
+                handler.postDelayed(this,300);
+            }
+        },300);
+
+
+      /*  final Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -293,6 +318,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                 handler.postDelayed(this, time);
             }
         }, 4000);
+        */
 
     }
 
