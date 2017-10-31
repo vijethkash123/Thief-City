@@ -29,6 +29,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polygon;
+import com.google.maps.android.PolyUtil;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
@@ -37,6 +39,7 @@ import com.parse.SaveCallback;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class GamePlayActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -53,6 +56,7 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
     Location startLocation;
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
+    List<Polygon> permittedPolygons, restrictedPolygons;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,8 +144,12 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
         {
             //LatLng yourLoc = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
             //mMap.addMarker(new MarkerOptions().position(yourLoc).title("Marker in User Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(13.0173608,76.0923321),15)); // our col loc here
-
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(13.0173608,76.0923321),15));
+            // our col loc here
+            PolygonClass polygonClass = new PolygonClass(mMap);
+            polygonClass.drawPolygons();
+            permittedPolygons = polygonClass.permittedPolygons;
+            restrictedPolygons = polygonClass.restrictedPolygons;
             //Location loc1 = gpsTracker.getLocation();
             //Location loc2 = gpsTracker.getLocation();
 
@@ -153,6 +161,13 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
         }
         else Toast.makeText(this,"Can't get location",Toast.LENGTH_SHORT).show();
 
+
+    }
+
+    public boolean isLocationInPolygon(Polygon polygon, Location location)
+    {
+        LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
+        return PolyUtil.containsLocation(latLng,polygon.getPoints(), false);
 
     }
 
@@ -170,6 +185,11 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
 
                 public void onFinish() {
                     Toast.makeText(getApplicationContext(), "Automatically placing at current location", Toast.LENGTH_LONG).show();
+                    if(!isPlaceable(gpsTracker.location))
+                    {
+                        createToast("Cannot place here!! Placing at random location!");
+                        return;
+                    }
                     placeGem();
                 }
             }.start();
@@ -182,11 +202,21 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
 
     public void onGemPlace(View view)
     {
+        if(!isPlaceable(gpsTracker.location))
+        {
+           createToast("Cannot place here!!");
+            return;
+        }
         myTimer.cancel();
         placeGem();
 
     }
 
+
+    void createToast(String message)
+    {
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+    }
     void placeGem(){
         //When user presses place button
         Gem gem = myGems.get(gemIndex);
@@ -223,7 +253,7 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
                     gemIndex++;
                     editor.putInt("avusfq", gemIndex);
                     editor.apply();
-                    if(gemIndex<2)
+                    if(gemIndex<15)
                         startGemPlacementProcess();
                     else
                         loadSecondGamePlayActivity();
@@ -232,6 +262,29 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
         });
 
         //TODO: Save gemIndex locally
+    }
+
+    boolean isPlaceable(Location location)
+    {
+        boolean isInPermittedRegion = false, isInRestrictedRegion = false;
+        for(Polygon polygon : permittedPolygons)
+        {
+            if(isLocationInPolygon(polygon,location))
+            {
+                isInPermittedRegion = true;
+                break;
+            }
+        }
+        for(Polygon polygon : restrictedPolygons)
+        {
+            if(isLocationInPolygon(polygon,location))
+            {
+                isInRestrictedRegion = true;
+                break;
+            }
+        }
+
+        return isInPermittedRegion && !isInRestrictedRegion;
     }
 
 

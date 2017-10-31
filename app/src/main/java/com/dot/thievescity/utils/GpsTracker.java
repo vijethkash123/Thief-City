@@ -78,10 +78,11 @@ public class GpsTracker extends Service implements LocationListener {
         this.firstActivity = firstActivity;
         location = getLocation();
     }
-     public GpsTracker(Context context)
+     public GpsTracker(Context context, GoogleMap mMap)
      {
          this.mContext = context;
          location = getLocation();
+         this.mMap = mMap;
      }
 
     //

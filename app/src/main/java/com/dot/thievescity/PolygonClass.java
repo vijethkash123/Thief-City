@@ -1,3 +1,5 @@
+package com.dot.thievescity;
+
 import android.nfc.Tag;
 import android.support.v4.app.FragmentActivity;
 import android.widget.Toast;
@@ -13,6 +15,7 @@ import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.Polyline;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -44,14 +47,22 @@ public class PolygonClass{
     private static final List<PatternItem> PATTERN_POLYGON_BETA =
             Arrays.asList(DOT, GAP, DASH, GAP);
 
+    public List<Polygon> permittedPolygons = new ArrayList<>();
+    public List<Polygon> restrictedPolygons = new ArrayList<>();
 
+
+    public PolygonClass(GoogleMap googleMap)
+    {
+        this.googleMap = googleMap;
+    }
 
     // More code goes here, including the onCreate() method described above.
-          void somefunc()
+         public void drawPolygons()
          {
 
             // Add polylines and polygons to the map. This section shows just
             // a single polyline. Read the rest of the tutorial to learn more.
+             /*
             Polygon polygonMainarea = googleMap.addPolygon(new PolygonOptions()
                     .clickable(false)
                     .add(
@@ -64,9 +75,11 @@ public class PolygonClass{
                             new LatLng(13.022415,76.104147),
                             new LatLng(13.02247,76.103598),
                             new LatLng(13.024543,76.10428),
-                            new LatLng(13.025275,76.101856)));
-             polygonMainarea.setTag("a");
-
+                            new LatLng(13.025275,76.101856))
+            );
+             //polygonMainarea.setFillColor(COLOR_GREEN_ARGB);
+             polygonMainarea.setTag("alpha");
+            permittedPolygons.add(polygonMainarea);
 
             // Set listeners for click events
             //googleMap.setOnPolygonClickListener();
@@ -78,7 +91,8 @@ public class PolygonClass{
                             new LatLng(13.022989,76.10200),
                             new LatLng(13.02259,76.102577),
                             new LatLng(13.022722,76.103576)));
-             polygonCs.setTag("b");
+             polygonCs.setTag("beta");
+             restrictedPolygons.add(polygonCs);
 
              Polygon polygonControlRoom = googleMap.addPolygon (new PolygonOptions()
                      .clickable(false)
@@ -87,24 +101,26 @@ public class PolygonClass{
                              new LatLng(13.0232,76.103625),
                              new LatLng(13.023307,76.10329),
                              new LatLng(13.022981,76.103167)));
-             polygonControlRoom.setTag("c");
+             polygonControlRoom.setTag("alpha");
+             restrictedPolygons.add(polygonControlRoom);
 
              Polygon polygonMainBlock = googleMap.addPolygon (new PolygonOptions()
                      .clickable(false)
                      .add(
-                             new LatLng(13.023082,76.102117),
-                             new LatLng(13.024056,76.102389),
-                             new LatLng(13.023776,76.103329),
-                             new LatLng(13.023706,76.102899),
-                             new LatLng(13.023893,76.1024),
-                             new LatLng(13.023768,76.102423),
-                             new LatLng(13.023703,76.102423),
-                             new LatLng(13.023622,76.102344),
-                             new LatLng(13.023604,76.102412),
+                             new LatLng(13.023155,76.102638),
+                             new LatLng(13.023261,76.102671),
+                             new LatLng(13.023431,76.102189),
+                             new LatLng(13.023945,76.102371),
+                             new LatLng(13.023774,76.10286),
+                             new LatLng(13.023892,76.102893),
+                             new LatLng(13.024096,76.102298),
+                             new LatLng(13.023363,76.102043),
+                             new LatLng(13.0236042,76.102412),
                              new LatLng(13.02349,76.102344),
                              new LatLng(13.023456,76.102718),
-                             new LatLng(13.023235,76.102899)));
-             polygonMainBlock.setTag("d");
+                             new LatLng(13.023155,76.102638)));
+             polygonMainBlock.setTag("beta");
+             restrictedPolygons.add(polygonMainBlock);
 
 
              Polygon polygonSaCvAudi = googleMap.addPolygon (new PolygonOptions()
@@ -116,7 +132,8 @@ public class PolygonClass{
                              new LatLng(13.0242331,76.103749),
                              new LatLng(13.024532,76.103848),
                              new LatLng(13.023982,76.103311)));
-             polygonSaCvAudi.setTag("e");
+             polygonSaCvAudi.setTag("alpha");
+             restrictedPolygons.add(polygonSaCvAudi);
 
              Polygon polygonGround2 = googleMap.addPolygon (new PolygonOptions()
                      .clickable(false)
@@ -125,7 +142,8 @@ public class PolygonClass{
                              new LatLng(13.024096,76.105356),
                              new LatLng(13.024329,76.104322),
                              new LatLng(13.023226,76.103851)));
-             polygonControlRoom.setTag("f");
+             polygonControlRoom.setTag("beta");
+             permittedPolygons.add(polygonGround2);
 
              //Polygon polygonCvPg = googleMap.addPolygon (new PolygonOptions()
                   //   .clickable(false)
@@ -135,6 +153,26 @@ public class PolygonClass{
                             // new LatLng(13.023307,76.10329),
                             // new LatLng(13.022981,76.103167)));
              //polygonCvPg.setTag("g");
+             */
+
+             Polygon perm = googleMap.addPolygon(new PolygonOptions()
+             .clickable(false)
+             .add(
+                     new LatLng(13.022459,76.096867),
+                     new LatLng(13.022386,76.097304),
+                     new LatLng(13.021146,76.097441)
+                     ));
+             permittedPolygons.add(perm);
+
+             Polygon rest = googleMap.addPolygon(new PolygonOptions()
+                     .clickable(false)
+                     .add(
+                             new LatLng(13.021834,76.097218),
+                             new LatLng(13.021875,76.097243),
+                             new LatLng(13.021898,76.096966),
+                             new LatLng(13.021845,76.096970)
+                     ));
+             restrictedPolygons.add(rest);
          }
 
             // if (Tag=="b,c,d,e,g")

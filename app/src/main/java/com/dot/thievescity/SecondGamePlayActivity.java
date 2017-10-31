@@ -29,6 +29,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.daimajia.androidanimations.library.Techniques;
+import com.daimajia.androidanimations.library.YoYo;
 import com.dot.thievescity.utils.GpsTracker;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -809,7 +811,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
     {
         ArrayList<Gem> bagGemsT = new ArrayList<>();
         try {
-            //bagGemsT = ObjectSerializer.deserialize(sharedPreferences.getString("bagGems", ObjectSerializer.serialize(new ArrayList<Gem>())));
+            bagGemsT = (ArrayList<Gem>) ObjectSerializer.deserialize(sharedPreferences.getString("bagGems", ObjectSerializer.serialize(new ArrayList<Gem>())));
         }
         catch (Exception e)
         {
