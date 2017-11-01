@@ -36,7 +36,9 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.parse.FindCallback;
 //mport com.parse.LiveQueryException;
+import com.parse.FunctionCallback;
 import com.parse.LiveQueryException;
+import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
 //import com.parse.ParseLiveQueryClient;
@@ -52,6 +54,8 @@ import android.os.Handler;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 //import java.util.logging.Handler;
 
@@ -104,6 +108,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
     }
 
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -124,6 +129,8 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
             gpsTracker.getLocation();
         }
     }
+
+
 
     /**
      * Manipulates the map once available.
@@ -167,8 +174,6 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         if(Build.VERSION.SDK_INT >= 23 && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
 
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
-
-
         }
         else{
             Location lastKnownLocation =null;
@@ -233,8 +238,9 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                     handler.postDelayed(this,300);
                     return;
                 }
-                for(Gem gem : liveObjects) {
+                for(Iterator<Gem> iterator = liveObjects.iterator(); iterator.hasNext();) {
                     //Gem gem = liveObjects.get(0);
+                    Gem gem = iterator.next();
                     Gem requiredGem = findGem(gem.id);
                     //if(requiredGem == null)
                     //createToast("243");
@@ -253,7 +259,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                     if (requiredGem.username.equals(username) && requiredGem.marker == null)
                         addMarker(requiredGem);
                     Log.i("Here", gem.username);
-                    liveObjects.remove(gem);
+                    iterator.remove();
                 }
                 handler.postDelayed(this,300);
             }
@@ -807,6 +813,8 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
             totalGemsInBag++;
 
             updateGrabGemUI(gem, false, false);
+            parseCloudGrab(gem);
+            /*
             ParseQuery query = ParseQuery.getQuery("Gem");
             query.whereEqualTo("objectId", id);
             query.setLimit(1);
@@ -821,6 +829,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
                 }
             });
+            */
         }
         catch (Exception e)
         {
@@ -829,6 +838,85 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
 
        // loadAllGems();
+    }
+
+    void grabGem(ParseObject object)
+    {
+        try {
+            final String objectId = object.getObjectId();
+            object.put("isPlaced", false);
+            object.put("location", new ParseGeoPoint(0, 0));
+            object.put("username", username);
+            object.saveInBackground(new SaveCallback() {
+                @Override
+                public void done(ParseException e) {
+                    if (e == null) {
+                        Toast.makeText(getApplicationContext(), "Successfully grabbed!", Toast.LENGTH_SHORT).show();
+                        Gem gem = findGem(objectId);
+                        updateGrabGemUI(gem, false, false);
+                        gem.isPlaced = false;
+                        gem.username = username;
+                        updateBagUI(gem, true);
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Network Error!", Toast.LENGTH_SHORT).show();
+                        Gem gem = findGrabGem(objectId);
+                        updateGrabGemUI(gem, true, false);
+                        totalGemsInBag--;
+                    }
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            createToast("Exception:grabGem");
+        }
+    }
+
+    void parseCloudGrab(Gem gem)
+    {
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        final String gemId = gem.id;
+        params.put("parseObjectId",gem.id);
+        params.put("username", username);
+        ParseCloud.callFunctionInBackground("grabGem", params, new FunctionCallback<Integer>() {
+            public void done(Integer result, ParseException e) {
+                if (e == null) {
+                    if(result == 1)
+                    {
+                        Toast.makeText(getApplicationContext(), "Successfully grabbed!", Toast.LENGTH_SHORT).show();
+                        Gem gem = findGem(gemId);
+                        updateGrabGemUI(gem, false, false);
+                        gem.isPlaced = false;
+                        gem.username = username;
+                        updateBagUI(gem, true);
+                    }
+                    else
+                        if(result == -2)
+                        {
+                            Toast.makeText(getApplicationContext(), "Someone grabbed it already!", Toast.LENGTH_SHORT).show();
+                            totalGemsInBag--;
+                        }
+                        else
+                            if(result == 0 || result == -1)
+                            {
+                                Toast.makeText(getApplicationContext(), "Network Error!", Toast.LENGTH_SHORT).show();
+                                Gem gem = findGrabGem(gemId);
+                                updateGrabGemUI(gem, true, false);
+                                totalGemsInBag--;
+                            }
+
+
+                }
+                else {
+
+                    Toast.makeText(getApplicationContext(), "Network Error!", Toast.LENGTH_SHORT).show();
+                    Gem gem = findGrabGem(gemId);
+                    updateGrabGemUI(gem, true, false);
+                    totalGemsInBag--;
+
+                }
+            }
+        });
     }
 
     void saveBagData()
@@ -866,37 +954,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
     }
 
 
-    void grabGem(ParseObject object)
-    {
-        try {
-            final String objectId = object.getObjectId();
-            object.put("isPlaced", false);
-            object.put("location", new ParseGeoPoint(0, 0));
-            object.put("username", username);
-            object.saveInBackground(new SaveCallback() {
-                @Override
-                public void done(ParseException e) {
-                    if (e == null) {
-                        Toast.makeText(getApplicationContext(), "Successfully grabbed!", Toast.LENGTH_SHORT).show();
-                        Gem gem = findGem(objectId);
-                        updateGrabGemUI(gem, false, false);
-                        gem.isPlaced = false;
-                        gem.username = username;
-                        updateBagUI(gem, true);
-                    } else {
-                        Toast.makeText(getApplicationContext(), "Network Error!", Toast.LENGTH_SHORT).show();
-                        Gem gem = findGrabGem(objectId);
-                        updateGrabGemUI(gem, true, false);
-                        totalGemsInBag--;
-                    }
-                }
-            });
-        }
-        catch (Exception e)
-        {
-            createToast("Exception:grabGem");
-        }
-    }
+
 
     void onClickBag()
     {
