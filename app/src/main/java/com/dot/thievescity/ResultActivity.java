@@ -13,6 +13,8 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class ResultActivity extends AppCompatActivity {
@@ -39,6 +41,8 @@ public class ResultActivity extends AppCompatActivity {
 
         username = ParseUser.getCurrentUser().getUsername();
         getUsers();
+        getGems();
+        sortList();
     }
 
     void getUsers()
@@ -60,11 +64,22 @@ public class ResultActivity extends AppCompatActivity {
         query.findInBackground(new FindCallback<ParseObject>() {
             public void done(List<ParseObject> allGems, ParseException e) {
                 for(ParseObject gem : allGems){
-
-
+                    User user  = findUser(gem);
+                    if(user==null)continue;
+                    user.score += valueOfGem(gem.getInt("type"));
                 }
             }
         });
+    }
+
+    User findUser(ParseObject gem)
+    {
+        for(User user : allUsers)
+        {
+            if(user.username.equals(gem.getString("username")))
+                return user;
+        }
+        return null;
     }
 
     int calculateScore(List<ParseObject> myObjects)
@@ -88,6 +103,20 @@ public class ResultActivity extends AppCompatActivity {
             case 1: return 500;
             default: return 300;
         }
+    }
+
+    void sortList()
+    {
+        Collections.sort(allUsers, new Comparator<User>() {
+            @Override
+            public int compare(User u1, User u2) {
+                if (u1.score > u2.score)
+                    return 1;
+                if (u1.score < u2.score)
+                    return -1;
+                return 0;
+            }
+        });
     }
 
 

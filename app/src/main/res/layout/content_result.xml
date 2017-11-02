@@ -8,4 +8,9 @@
     tools:context="com.dot.thievescity.ResultActivity"
     tools:showIn="@layout/activity_result">
 
+    <TableRow
+        android:layout_width="344dp"
+        android:layout_height="495dp"
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="8dp" />
 </android.support.constraint.ConstraintLayout>
