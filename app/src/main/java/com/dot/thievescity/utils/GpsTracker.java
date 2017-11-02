@@ -11,17 +11,20 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
+import com.dot.thievescity.GamePlayActivity;
+import com.dot.thievescity.SecondGamePlayActivity;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.gson.Gson;
 
 /**
  * Ahmet Ertugrul OZCAN
@@ -30,7 +33,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class GpsTracker extends Service implements LocationListener {
     private final Context mContext;
     GoogleMap mMap;
-    Marker present;
     // Cihazda gps acik mi?
     boolean isGPSEnabled = false;
 
@@ -38,31 +40,52 @@ public class GpsTracker extends Service implements LocationListener {
     boolean isNetworkEnabled = false;
 
     boolean canGetLocation = false;
+    Marker currentLocationMarker;
 
     // Konum
-    Location location;
+    public Location location = null;
     // Enlem
     double latitude;
     // Boylam
     double longitude;
 
     // Konum guncellemesi gerektirecek minimum degisim miktari
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // metre
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 0; // metre
 
     // Konum guncellemesi gerektirecek minimum sure miktari
-    private static final long MIN_TIME_BW_UPDATES = 1000 * 60 * 1; // dakika
+    private static final long MIN_TIME_BW_UPDATES = 100; // dakika
 
     // LocationManager nesnesi
     protected LocationManager locationManager;
 
+    public SecondGamePlayActivity myActivity;
+    public GamePlayActivity firstActivity;
+    boolean onOnce = false;
+
     //
     // Kurucu Metod - Constructor
     //
-    public GpsTracker(Context context, GoogleMap map) {
+    public GpsTracker(Context context, GoogleMap map, SecondGamePlayActivity myActivity) {
         this.mContext = context;
         this.mMap=map;
-        getLocation();
+        this.myActivity = myActivity;
+        location = new Location("dummyProvider");
+        location = getLocation();
     }
+
+    public GpsTracker(Context context, GoogleMap map, GamePlayActivity firstActivity) {
+        this.mContext = context;
+        this.mMap=map;
+        this.firstActivity = firstActivity;
+        location = new Location("dummyProvider");
+        location = getLocation();
+    }
+     public GpsTracker(Context context, GoogleMap mMap)
+     {
+         this.mContext = context;
+         location = getLocation();
+         this.mMap = mMap;
+     }
 
     //
     // Konum bilgisini dondurur
@@ -74,8 +97,8 @@ public class GpsTracker extends Service implements LocationListener {
             isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
             // Internet acik mi?
             isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-            if (!isGPSEnabled && !isNetworkEnabled) {
-
+            if (!isGPSEnabled) {
+                showSettingsAlert();
             } else {
                 this.canGetLocation = true;
 
@@ -107,10 +130,11 @@ public class GpsTracker extends Service implements LocationListener {
                 // GPS'ten alinan konum bilgisi
                 if (isGPSEnabled)
                 {
-                    if (location == null)
+                    if (!onOnce)
                     {
                         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-                        Log.d("GPS Enabled", "GPS Enabled");
+                        Log.i("GPS Enabled", "GPS Enabled");
+                        //Toast.makeText(myActivity,"Here", Toast.LENGTH_LONG).show();
                         if (locationManager != null)
                         {
                             location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -120,13 +144,18 @@ public class GpsTracker extends Service implements LocationListener {
                                 longitude = location.getLongitude();
                             }
                         }
+                        onOnce = true;
                     }
+
+                    if(location==null)
+                        location = new Location("dummyProvider");
                 }
             }
         }
         catch (Exception e)
         {
             e.printStackTrace();
+            //Toast.makeText(getApplicationContext(),"Please enable GPS and/or Internet", Toast.LENGTH_LONG);
         }
 
         return location;
@@ -155,13 +184,29 @@ public class GpsTracker extends Service implements LocationListener {
     }
 
     @Override
-    public void onLocationChanged(Location location)
+    public void onLocationChanged(Location locationLocal)
     {
+
+        Log.i("location","changedfgg");
+        location.setLatitude(locationLocal.getLatitude());
+        location.setLongitude(locationLocal.getLongitude());
         LatLng yourLoc = new LatLng(location.getLatitude(), location.getLongitude());
-       Marker present = mMap.addMarker(new MarkerOptions().position(yourLoc).title("Marker in User Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(yourLoc,15));
 
+        if(location == null)
+            return;
+        if(myActivity != null)
+            myActivity.loadGemsNearBy();
+        //mMap.clear();
+        if(currentLocationMarker!=null)
+            currentLocationMarker.remove();
+         currentLocationMarker = mMap.addMarker(new MarkerOptions().position(yourLoc).title("Marker in User Location")
+                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+        if(firstActivity!=null)
+        {
 
+        }
+       // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(yourLoc,15));
+        Log.i("Here", "Locationlast");
     }
 
     @Override
@@ -172,6 +217,7 @@ public class GpsTracker extends Service implements LocationListener {
     @Override
     public void onProviderEnabled(String provider)
     {
+
     }
 
     @Override
@@ -196,26 +242,27 @@ public class GpsTracker extends Service implements LocationListener {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(mContext);
 
         // Mesaj basligi
-        alertDialog.setTitle("GPS Kapalı");
+        alertDialog.setTitle("GPS Disabled");
 
         // Mesaj
-        alertDialog.setMessage("Konum bilgisi alınamıyor. Ayarlara giderek gps'i aktif hale getiriniz.");
+        alertDialog.setMessage("GPS disabled. Do you want to enable GPS?");
 
         // Mesaj ikonu
         //alertDialog.setIcon(R.drawable.delete);
 
         // Ayarlar butonuna tiklandiginda
-        alertDialog.setPositiveButton("Ayarlar", new DialogInterface.OnClickListener()
+        alertDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener()
         {
             public void onClick(DialogInterface dialog,int which)
             {
                 Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                 mContext.startActivity(intent);
+                waitTillGPSEnabled();
             }
         });
 
         // Iptal butonuna tiklandiginda
-        alertDialog.setNegativeButton("İptal", new DialogInterface.OnClickListener()
+        alertDialog.setNegativeButton("No", new DialogInterface.OnClickListener()
         {
             public void onClick(DialogInterface dialog, int which)
             {
@@ -234,5 +281,26 @@ public class GpsTracker extends Service implements LocationListener {
         {
             locationManager.removeUpdates(GpsTracker.this);
         }
+    }
+
+    void waitTillGPSEnabled()
+    {
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
+                {
+                    getLocation();
+                    if(firstActivity!=null)
+                        firstActivity.restartGPS();
+                    else
+                        if(myActivity!=null)
+                            myActivity.checkPermissionAndStart();
+                }
+                else
+                    handler.postDelayed(this,300);
+            }
+        },300);
     }
 }
