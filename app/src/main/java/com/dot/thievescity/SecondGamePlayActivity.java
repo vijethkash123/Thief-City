@@ -37,8 +37,10 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polygon;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.google.maps.android.PolyUtil;
 import com.parse.FindCallback;
 //mport com.parse.LiveQueryException;
 import com.parse.FunctionCallback;
@@ -92,6 +94,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
     private RecyclerView.LayoutManager mLayoutManager;
     private RecyclerView.Adapter mAdapter;
     private ArrayList<Integer> imageIds;
+    List<Polygon> permittedPolygons, restrictedPolygons;
 
 
     @Override
@@ -194,7 +197,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 // TODO: Consider calling
                 //    ActivityCompat#requestPermissions
                 // here to request the missing permissions, and then overriding
@@ -202,10 +205,12 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                 //                                          int[] grantResults)
                 // to handle the case where the user grants the permission. See the documentation
                 // for ActivityCompat#requestPermissions for more details.
+                gpsTracker =new GpsTracker(this, mMap, SecondGamePlayActivity.this);
+                startLocationService();
                 return;
             }
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
-            gpsTracker.getLocation();
+           // locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+            //gpsTracker.getLocation();
         }
     }
 
@@ -223,21 +228,10 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
-        gpsTracker =new GpsTracker(this, mMap, SecondGamePlayActivity.this);
+        mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
 
-        // Add a marker in Sydney and move the camera
-       // LatLng silver = new LatLng(13.022775, 76.102263);
-      //  mMap.addMarker(new MarkerOptions().position(silver).title("Marker in Silver Jubliee").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(silver,15));
-
-        //LatLng home1 = new LatLng(13.023611, 76.102263);
-        //mMap.addMarker(new MarkerOptions().position(home1).title("Marker in Main Gate").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(home1,15));
-
-        //LatLng stage = new LatLng(13.024427, 76.103561);
-        //mMap.addMarker(new MarkerOptions().position(stage).title("Marker in Stage"));
-        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(stage,15));
+        if(Build.VERSION.SDK_INT < 23)
+            gpsTracker =new GpsTracker(this, mMap, SecondGamePlayActivity.this);
 
         checkPermissionAndStart();
 
@@ -246,39 +240,40 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
     public void checkPermissionAndStart()
     {
-
-
-
-
         if(Build.VERSION.SDK_INT >= 23 && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
 
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
         }
         else{
-            Location lastKnownLocation =null;
-            if(gpsTracker.location==null)
-                gpsTracker.getLocation();
-            if(gpsTracker.canGetLocation())
-            {
-               // gpsTracker.location = gpsTracker.getLocation();
-                //lastKnownLocation = gpsTracker.location;
-                //LatLng yourLoc = new LatLng();
-                //mMap.addMarker(new MarkerOptions().position(yourLoc).title("Marker in User Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(13.0173608,76.0923321),15));
 
-                // Location loc1 = gpsTracker.getLocation();
-                //Location loc2 = gpsTracker.getLocation();
-
-
-
-                //float distanceInMeters = loc1.distanceTo(loc2);
-
-                //Toast.makeText(this,distanceInMeters+"",Toast.LENGTH_LONG).show();
-            }
-            else Toast.makeText(this,"Can't get location",Toast.LENGTH_SHORT).show();
-
-
+            startLocationService();
         }
+    }
+
+    void startLocationService()
+    {
+        Location lastKnownLocation =null;
+        if(gpsTracker.location==null)
+            gpsTracker.getLocation();
+        if(gpsTracker.canGetLocation())
+        {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(13.0173608,76.0923321),15));
+        }
+        else Toast.makeText(this,"Can't get location",Toast.LENGTH_SHORT).show();
+        PolygonClass polygonClass = new PolygonClass(mMap);
+        polygonClass.drawPolygons();
+        permittedPolygons = polygonClass.permittedPolygons;
+        restrictedPolygons = polygonClass.restrictedPolygons;
+
+    }
+
+    public void restartGPS()
+    {
+        gpsTracker.stopUsingGPS();
+        gpsTracker = null;
+        if(Build.VERSION.SDK_INT < 23)
+            gpsTracker =new GpsTracker(this, mMap, SecondGamePlayActivity.this);
+        checkPermissionAndStart();
     }
 
     List<Gem> liveObjects = new ArrayList<>();
@@ -362,6 +357,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                         @Override
                         public void done(List<ParseObject> objects, ParseException e) {
                             try {
+                                checkGameFinished();
                                 for (ParseObject object : objects) {
                                     date = object.getUpdatedAt();
                                     Gem gem = parseObjectToGem(object);
@@ -408,6 +404,23 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
 
     }
+    boolean finishLd = true;
+    void checkGameFinished()
+    {
+        if(!finishLd)
+            return;
+        finishLd = false;
+        ParseQuery parseQuery = new ParseQuery("Finish");
+        parseQuery.whereEqualTo("objectId", "rcGoeCkH54");
+        parseQuery.setLimit(1);
+        parseQuery.findInBackground(new FindCallback<ParseObject>() {
+            public void done(List<ParseObject> finished, ParseException e) {
+                finishLd= true;
+                if(finished.get(0).getBoolean("isFinished"))
+                finishGame();
+            }
+        });
+    }
 
     void notifyGemLost(Gem gem)
     {
@@ -420,11 +433,42 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                 .setContentTitle("Gem Lost")
                 .setContentText("You lost a " + type + " gem")
                 .setSmallIcon(R.mipmap.ic_launcher)
-                .setSound(Settings.System.DEFAULT_NOTIFICATION_URI);
+                .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
+                .setPriority(NotificationManager.IMPORTANCE_HIGH);
 
         NotificationManager notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         notificationManager.notify(notificationIndex,notification.build());
         notificationIndex++;
+    }
+
+    boolean isPlaceable(Location location)
+    {
+        boolean isInPermittedRegion = false, isInRestrictedRegion = false;
+        for(Polygon polygon : permittedPolygons)
+        {
+            if(isLocationInPolygon(polygon,location))
+            {
+                isInPermittedRegion = true;
+                break;
+            }
+        }
+        for(Polygon polygon : restrictedPolygons)
+        {
+            if(isLocationInPolygon(polygon,location))
+            {
+                isInRestrictedRegion = true;
+                break;
+            }
+        }
+
+        return isInPermittedRegion && !isInRestrictedRegion;
+    }
+
+    public boolean isLocationInPolygon(Polygon polygon, Location location)
+    {
+        LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
+        return PolyUtil.containsLocation(latLng,polygon.getPoints(), false);
+
     }
 
 
@@ -485,6 +529,12 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         try {
             if(gem.isPlaced)
                 return;
+            Location cLocation = gpsTracker.location;
+            if(!isPlaceable(cLocation))
+            {
+                createToast("Cannot place here");
+                return;
+            }
             final int type = gem.type;
             final String objectId = gem.id;
             //GpsTracker gpsTracker = new GpsTracker(this);
@@ -1058,6 +1108,18 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         catch (Exception e)
         {
             e.printStackTrace();
+        }
+    }
+
+    boolean resultLoaded = false;
+    void finishGame()
+    {
+        if(!resultLoaded)
+        {
+            Intent resultActivity = new Intent(getApplicationContext(),SecondGamePlayActivity.class);
+            startActivity(resultActivity);
+            resultLoaded = true;
+            finish();
         }
     }
 

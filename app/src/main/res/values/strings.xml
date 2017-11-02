@@ -19,4 +19,5 @@
     <string name="title_activity_instructions">InstructionsActivity</string>
     <string name="title_activity_second_game_play">Map</string>
     <string name="title_activity_polygon_draw">Map</string>
+    <string name="title_activity_result">ResultActivity</string>
 </resources>

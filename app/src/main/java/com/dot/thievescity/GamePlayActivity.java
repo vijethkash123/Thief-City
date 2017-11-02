@@ -118,24 +118,12 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
         if(sharedPreferences.getInt("activityOrder",0)==1)
         {
             restartFromLocation();
         }
 
-        // Add a marker in Sydney and move the camera
-       // LatLng silver = new LatLng(13.022775, 76.102263);
-        //mMap.addMarker(new MarkerOptions().position(silver).title("Marker in Silver Jubliee").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(silver,15));
-
-        //LatLng home1 = new LatLng(13.023611, 76.102263);
-        //mMap.addMarker(new MarkerOptions().position(home1).title("Marker in Main Gate").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(home1,15));
-
-        //LatLng stage = new LatLng(13.024427, 76.103561);
-        //mMap.addMarker(new MarkerOptions().position(stage).title("Marker in Stage"));
-        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(stage,15));
         if(Build.VERSION.SDK_INT < 23)
         gpsTracker =new GpsTracker(this, mMap, GamePlayActivity.this);
         checkPermissionAndStart();

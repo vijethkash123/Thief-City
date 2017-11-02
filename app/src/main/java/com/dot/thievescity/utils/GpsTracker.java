@@ -296,7 +296,7 @@ public class GpsTracker extends Service implements LocationListener {
                         firstActivity.restartGPS();
                     else
                         if(myActivity!=null)
-                            myActivity.checkPermissionAndStart();
+                            myActivity.restartGPS();
                 }
                 else
                     handler.postDelayed(this,300);

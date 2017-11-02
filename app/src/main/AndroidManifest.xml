@@ -48,6 +48,7 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter android:label="Thief City">
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -62,8 +63,11 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".PolygonDraw"
-            android:label="@string/title_activity_polygon_draw">
-        </activity>
+            android:label="@string/title_activity_polygon_draw"></activity>
+        <activity
+            android:name=".ResultActivity"
+            android:label="@string/title_activity_result"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>
