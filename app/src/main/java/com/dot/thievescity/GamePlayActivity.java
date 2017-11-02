@@ -351,7 +351,7 @@ boolean first;
                     gemIndex++;
                     editor.putInt("pepeJeans", gemIndex);
                     editor.apply();
-                    if(gemIndex<15)
+                    if(gemIndex<2)
                         startGemPlacementProcess();
                     else
                         loadSecondGamePlayActivity();

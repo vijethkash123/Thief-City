@@ -17,10 +17,15 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -81,6 +86,12 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
     int notificationIndex = 0;
+    LinearLayout linearLayout;
+    ImageButton imageButton;
+    private RecyclerView mRecyclerView;
+    private RecyclerView.LayoutManager mLayoutManager;
+    private RecyclerView.Adapter mAdapter;
+    private ArrayList<Integer> imageIds;
 
 
     @Override
@@ -91,22 +102,66 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
-        listView = (ListView)findViewById(R.id.grab_gem_list);
+        initializeRV();
+        Log.i("here", 107+"");
+        initializeBagRV();
+       // listView = (ListView)findViewById(R.id.grab_gem_list);
         username  = ParseUser.getCurrentUser().getUsername();
         sharedPreferences = this.getSharedPreferences("com.dot.thievescity", Context.MODE_PRIVATE);
         editor = sharedPreferences.edit();
         editor.putInt("activityOrder", 2);
         editor.apply();
-        loadMyGems();
-        loadAllGems();
-        initializeListView();
-        initializeBag();
+        //loadMyGems();
+       // loadAllGems();
+        //initializeListView();
+        //initializeBag();
+        //linearLayout = (LinearLayout)findViewById(R.id.grab_gem_layout);
+        //imageButton = (ImageButton)LayoutInflater.from(this).inflate(R.layout.gem_button,null);
+        //imageButton.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+
+        //linearLayout.addView(imageButton);
         //bagDataInitialize();
         //allGems.get(allGems.indexOf("Sanath"));
         //startGemPlacementProcess();
 
     }
+
+
+    void initializeRV()
+    {
+        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        mRecyclerView.setHasFixedSize(true);
+        mLayoutManager = new LinearLayoutManager(this,LinearLayoutManager.HORIZONTAL, false);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        imageIds = new ArrayList<>();
+        imageIds.add(R.drawable.images_god);
+        imageIds.add(R.drawable.erer);
+        mAdapter = new MainAdapter(imageIds);
+        mRecyclerView.setAdapter(mAdapter);
+
+
+    }
+
+    private RecyclerView bagRecyclerView;
+    private RecyclerView.LayoutManager bagLayoutManager;
+    private RecyclerView.Adapter bagmAdapter;
+    private ArrayList<Integer> bagImageIds;
+
+    void initializeBagRV()
+    {
+        bagRecyclerView = (RecyclerView) findViewById(R.id.bag_view);
+        bagRecyclerView.setHasFixedSize(true);
+        bagLayoutManager = new LinearLayoutManager(this,LinearLayoutManager.HORIZONTAL, false);
+        bagRecyclerView.setLayoutManager(bagLayoutManager);
+        bagImageIds = new ArrayList<>();
+        bagImageIds.add(R.drawable.images_god);
+        bagImageIds.add(R.drawable.erer);
+        bagmAdapter = new MainAdapter(bagImageIds);
+        bagRecyclerView.setAdapter(bagmAdapter);
+
+    }
+
+
 
 
     @Override
@@ -206,7 +261,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
     void startSubscription()
     {
-        ParseLiveQueryClient parseLiveQueryClient = ParseLiveQueryClient.Factory.getClient();
+      /*  ParseLiveQueryClient parseLiveQueryClient = ParseLiveQueryClient.Factory.getClient();
         ParseQuery<ParseObject> parseQuery = ParseQuery.getQuery("Gem");
 
         SubscriptionHandling<ParseObject> subscriptionHandling = parseLiveQueryClient.subscribe(parseQuery);
@@ -265,8 +320,10 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
             }
         },300);
 
+        */
 
-      /*  final Handler handler = new Handler();
+
+       final Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -324,7 +381,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                 handler.postDelayed(this, time);
             }
         }, 4000);
-        */
+
 
     }
 
@@ -663,28 +720,36 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
             createToast("updateGramGemUI: gem null");
             return;
         }
+        int gemImage = getGemImageId(gem.type, false);
         String gemName = gemType(gem.type);
         if(takable)
             gemName = gemName + " Take";
         if(add){
            if(grabGemObjectIds.indexOf(gem.id)==-1) {
                grabGemObjectIds.add(gem.id);
-               ids.add(gemName);
+               //ids.add(gemName);
+               imageIds.add(gemImage);
+               mAdapter.notifyItemInserted(imageIds.size()-1);
            }
            else
            {
                int position = grabGemObjectIds.indexOf(gem.id);
-               ids.set(position,gemName);
+              // ids.set(position,gemName);
+               imageIds.set(position, gemImage);
+               mAdapter.notifyItemChanged(position);
 
            }
-           adapter.notifyDataSetChanged();
+           //adapter.notifyDataSetChanged();
+
         }
         else
         {
             try {
                 int position = grabGemObjectIds.indexOf(gem.id);
-                ids.remove(position);
-                adapter.notifyDataSetChanged();
+                //ids.remove(position);
+                imageIds.remove(position);
+                //adapter.notifyDataSetChanged();
+                mAdapter.notifyItemRemoved(position);
                 grabGemObjectIds.remove(gem.id);
                 Log.i("Here", "566");
             }
@@ -697,12 +762,23 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         }
     }
 
+    int getGemImageId (int type, boolean dark)
+    {
+        switch (type)
+        {
+            case 0: return R.drawable.gem_yellow;
+            case 1: return R.drawable.gem_ruby;
+            case 2: return R.drawable.gem_green;
+         }
+         return 0;
+    }
+
     ArrayList<String> ids;
     ArrayAdapter adapter;
 
     void initializeListView()
     {
-        listView = (ListView)findViewById(R.id.grab_gem_list);
+       // listView = (ListView)findViewById(R.id.grab_gem_list);
         ids = new ArrayList<String>();
         ids.add("first");
         adapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_list_item_1, ids);
@@ -724,7 +800,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
     void initializeBag()
     {
-        bagListView = (ListView)findViewById(R.id.bag_list_view);
+       // bagListView = (ListView)findViewById(R.id.bag_list_view);
         bagIds = new ArrayList<String>();
         bagIds.add("first");
         bagAdapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_list_item_1, bagIds);
@@ -813,8 +889,8 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
             totalGemsInBag++;
 
             updateGrabGemUI(gem, false, false);
-            parseCloudGrab(gem);
-            /*
+            //parseCloudGrab(gem);
+
             ParseQuery query = ParseQuery.getQuery("Gem");
             query.whereEqualTo("objectId", id);
             query.setLimit(1);
@@ -829,7 +905,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
                 }
             });
-            */
+
         }
         catch (Exception e)
         {
