@@ -111,8 +111,8 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         editor = sharedPreferences.edit();
         editor.putInt("activityOrder", 2);
         editor.apply();
-        //loadMyGems();
-       // loadAllGems();
+        loadMyGems();
+        loadAllGems();
         //initializeListView();
         //initializeBag();
         //linearLayout = (LinearLayout)findViewById(R.id.grab_gem_layout);
@@ -134,10 +134,22 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         mLayoutManager = new LinearLayoutManager(this,LinearLayoutManager.HORIZONTAL, false);
         mRecyclerView.setLayoutManager(mLayoutManager);
         imageIds = new ArrayList<>();
-        imageIds.add(R.drawable.images_god);
-        imageIds.add(R.drawable.erer);
+        //imageIds.add(R.drawable.images_god);
+        //imageIds.add(R.drawable.erer);
         mAdapter = new MainAdapter(imageIds);
         mRecyclerView.setAdapter(mAdapter);
+        mRecyclerView.addOnItemTouchListener(
+                new RecyclerItemClickListener(this, mRecyclerView ,new RecyclerItemClickListener.OnItemClickListener() {
+                    @Override public void onItemClick(View view, int position) {
+                        // do whatever
+                        onGrabGem(position);
+                    }
+
+                    @Override public void onLongItemClick(View view, int position) {
+                        // do whatever
+                    }
+                })
+        );
 
 
     }
@@ -154,10 +166,22 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         bagLayoutManager = new LinearLayoutManager(this,LinearLayoutManager.HORIZONTAL, false);
         bagRecyclerView.setLayoutManager(bagLayoutManager);
         bagImageIds = new ArrayList<>();
-        bagImageIds.add(R.drawable.images_god);
-        bagImageIds.add(R.drawable.erer);
+        //bagImageIds.add(R.drawable.images_god);
+        //bagImageIds.add(R.drawable.erer);
         bagmAdapter = new MainAdapter(bagImageIds);
         bagRecyclerView.setAdapter(bagmAdapter);
+        bagRecyclerView.addOnItemTouchListener(
+                new RecyclerItemClickListener(this, bagRecyclerView ,new RecyclerItemClickListener.OnItemClickListener() {
+                    @Override public void onItemClick(View view, int position) {
+                        // do whatever
+                        placeGem(bagGems.get(position));
+                    }
+
+                    @Override public void onLongItemClick(View view, int position) {
+                        // do whatever
+                    }
+                })
+        );
 
     }
 
@@ -456,9 +480,11 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
     } */
 
 
-    void placeGem(Gem gem){
+    public void placeGem(Gem gem){
         //When user presses place button
         try {
+            if(gem.isPlaced)
+                return;
             final int type = gem.type;
             final String objectId = gem.id;
             //GpsTracker gpsTracker = new GpsTracker(this);
@@ -789,7 +815,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
                // Toast.makeText(getApplicationContext(), "Clicked!", Toast.LENGTH_SHORT).show();
-                onGrabGem(view,i);
+                onGrabGem(i);
 
             }
         });
@@ -827,9 +853,12 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
             return;
         }
         String gemName = gemType(gem.type);
+        int gemImage = getGemImageId(gem.type, false);
 
         if(add){
-            bagAdapter.add(gemName);
+            ///bagAdapter.add(gemName);
+            bagImageIds.add(gemImage);
+            bagmAdapter.notifyItemInserted(bagImageIds.size()-1);
             bagGemObjectIds.add(gem.id);
             bagGems.add(gem);
         }
@@ -838,8 +867,10 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
             try {
                 int position = bagGemObjectIds.indexOf(gem.id);
                // bagAdapter.remove(position);
-                bagIds.remove(position);
-                bagAdapter.notifyDataSetChanged();
+                ///bagIds.remove(position);
+                bagImageIds.remove(position);
+                ///bagAdapter.notifyDataSetChanged();
+                bagmAdapter.notifyItemRemoved(position);
                 bagGemObjectIds.remove(gem.id);
                 boolean isThere = bagGems.remove(gem);
                 if(!isThere)
@@ -872,7 +903,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
     }
 
     int bagCapacity = 3, totalGemsInBag = 0;
-    void onGrabGem(View view , int position){
+    public void onGrabGem(int position){
 
         try {
             String id = grabGemObjectIds.get(position);
@@ -890,7 +921,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
             updateGrabGemUI(gem, false, false);
             //parseCloudGrab(gem);
-
+            //from here
             ParseQuery query = ParseQuery.getQuery("Gem");
             query.whereEqualTo("objectId", id);
             query.setLimit(1);
@@ -905,6 +936,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
                 }
             });
+            //to here
 
         }
         catch (Exception e)

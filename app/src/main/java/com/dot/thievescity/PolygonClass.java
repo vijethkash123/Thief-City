@@ -155,14 +155,14 @@ public class PolygonClass{
              //polygonCvPg.setTag("g");
              */
 
-             Polygon perm = googleMap.addPolygon(new PolygonOptions()
+             Polygon boundary = googleMap.addPolygon(new PolygonOptions()
              .clickable(false)
              .add(
-                     new LatLng(13.022459,76.096867),
-                     new LatLng(13.022386,76.097304),
+                     new LatLng(13.022855,76.10097333),
+                     new LatLng(13.02264,76.10181333),
                      new LatLng(13.021146,76.097441)
                      ));
-             permittedPolygons.add(perm);
+             permittedPolygons.add(boundary);
 
              Polygon rest = googleMap.addPolygon(new PolygonOptions()
                      .clickable(false)
