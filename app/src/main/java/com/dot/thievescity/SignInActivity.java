@@ -59,6 +59,9 @@ public class SignInActivity extends AppCompatActivity {
             case 2 : Intent toSecond = new Intent(getApplicationContext(),SecondGamePlayActivity.class);
                 startActivity(toSecond);
                 finish();break;
+            case 3: Intent toInst = new Intent(getApplicationContext(),InstructionsActivity.class);
+                startActivity(toInst);
+                finish();break;
         }
     }
 

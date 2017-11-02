@@ -230,8 +230,8 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         mMap = googleMap;
         mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
 
-        if(Build.VERSION.SDK_INT < 23)
-            gpsTracker =new GpsTracker(this, mMap, SecondGamePlayActivity.this);
+       // if(Build.VERSION.SDK_INT < 23)
+         //   gpsTracker =new GpsTracker(this, mMap, SecondGamePlayActivity.this);
 
         checkPermissionAndStart();
 
@@ -241,11 +241,10 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
     public void checkPermissionAndStart()
     {
         if(Build.VERSION.SDK_INT >= 23 && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
-
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
         }
         else{
-
+            gpsTracker =new GpsTracker(this, mMap, SecondGamePlayActivity.this);
             startLocationService();
         }
     }
@@ -271,8 +270,8 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
     {
         gpsTracker.stopUsingGPS();
         gpsTracker = null;
-        if(Build.VERSION.SDK_INT < 23)
-            gpsTracker =new GpsTracker(this, mMap, SecondGamePlayActivity.this);
+       // if(Build.VERSION.SDK_INT < 23)
+         //   gpsTracker =new GpsTracker(this, mMap, SecondGamePlayActivity.this);
         checkPermissionAndStart();
     }
 

@@ -75,6 +75,7 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
         sharedPreferences = GamePlayActivity.this.getSharedPreferences("com.dot.thievescity",Context.MODE_PRIVATE);
         editor = sharedPreferences.edit();
         loadMyGems();
+        initializeRandomLocations();
         if(sharedPreferences.getInt("activityOrder",0)==1)
         {
             return;
@@ -124,8 +125,8 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
             restartFromLocation();
         }
 
-        if(Build.VERSION.SDK_INT < 23)
-        gpsTracker =new GpsTracker(this, mMap, GamePlayActivity.this);
+       // if(Build.VERSION.SDK_INT < 23)
+        //gpsTracker =new GpsTracker(this, mMap, GamePlayActivity.this);
         checkPermissionAndStart();
 
     }
@@ -135,8 +136,8 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
     {
         gpsTracker.stopUsingGPS();
         gpsTracker = null;
-        if(Build.VERSION.SDK_INT < 23)
-            gpsTracker =new GpsTracker(this, mMap, GamePlayActivity.this);
+        //if(Build.VERSION.SDK_INT < 23)
+          //  gpsTracker =new GpsTracker(this, mMap, GamePlayActivity.this);
         checkPermissionAndStart();
     }
 
@@ -147,6 +148,7 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
         }
         else{
+            gpsTracker =new GpsTracker(this, mMap, GamePlayActivity.this);
             startLocationService();
         }
     }
@@ -280,12 +282,32 @@ boolean first;
 
     }
 
+    void initializeRandomLocations()
+    {
+        randomLocations.add(new LatLng(13.024176, 76.101687));
+        randomLocations.add(new LatLng(13.023696, 76.101655));
+        randomLocations.add(new LatLng(13.023864, 76.101669));
+        randomLocations.add(new LatLng(13.023709, 76.101688));
+        randomLocations.add(new LatLng(13.023923, 76.101855));
+        randomLocations.add(new LatLng(13.024112, 76.101845));
+        randomLocations.add(new LatLng(13.023604, 76.102467));
+        randomLocations.add(new LatLng(13.023586, 76.102505));
+        randomLocations.add(new LatLng(13.024632, 76.102221));
+        randomLocations.add(new LatLng(13.024821, 76.102215));
+        randomLocations.add(new LatLng(13.024979, 76.102220));
+        randomLocations.add(new LatLng(13.024482, 76.102704));
+        randomLocations.add(new LatLng(13.024619, 76.102777));
+        randomLocations.add(new LatLng(13.023548, 76.104195));
+        randomLocations.add(new LatLng(13.023777, 76.104390));
+
+    }
+
     public void onGemPlace(View view)
     {
         if(gpsTracker.location == null || !isPlaceable(gpsTracker.location))
         {
-           //createToast("Cannot place here!!");
-           // return;
+           createToast("Cannot place here!!");
+            return;
         }
         first = true;
         myTimer.cancel();
