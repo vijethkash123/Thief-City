@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ThievesCity</string>
+    <string name="app_name">Thief City</string>
     <string name="title_activity_login">Sign in</string>
 
     <!-- Strings related to login -->
@@ -14,10 +14,10 @@
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
     </string>
-    <string name="title_activity_game_play">Map</string>
-    <string name="title_activity_sign_in">SignInActivity</string>
-    <string name="title_activity_instructions">InstructionsActivity</string>
-    <string name="title_activity_second_game_play">Map</string>
-    <string name="title_activity_polygon_draw">Map</string>
-    <string name="title_activity_result">ResultActivity</string>
+    <string name="title_activity_game_play">Thief City</string>
+    <string name="title_activity_sign_in">Thief City</string>
+    <string name="title_activity_instructions">Thief City</string>
+    <string name="title_activity_second_game_play">Thief City</string>
+    <string name="title_activity_polygon_draw">Thief City</string>
+    <string name="title_activity_result">Thief City</string>
 </resources>

@@ -6,21 +6,23 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -44,17 +46,14 @@ import com.google.maps.android.PolyUtil;
 import com.parse.FindCallback;
 //mport com.parse.LiveQueryException;
 import com.parse.FunctionCallback;
-import com.parse.LiveQueryException;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
 //import com.parse.ParseLiveQueryClient;
-import com.parse.ParseLiveQueryClient;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
-import com.parse.SubscriptionHandling;
 //import com.parse.SubscriptionHandling;
 import android.os.Handler;
 
@@ -62,12 +61,11 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 //import java.util.logging.Handler;
 
 
-public class SecondGamePlayActivity extends FragmentActivity implements OnMapReadyCallback {
+public class SecondGamePlayActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     public GoogleMap mMap;
     LocationManager locationManager;
@@ -105,9 +103,15 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+
+       // Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar_second);
+        //setSupportActionBar(myToolbar);
+        //myToolbar.setTitleTextColor(Color.WHITE);
         initializeRV();
         Log.i("here", 107+"");
         initializeBagRV();
+        initializeFab();
        // listView = (ListView)findViewById(R.id.grab_gem_list);
         username  = ParseUser.getCurrentUser().getUsername();
         sharedPreferences = this.getSharedPreferences("com.dot.thievescity", Context.MODE_PRIVATE);
@@ -127,6 +131,21 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         //allGems.get(allGems.indexOf("Sanath"));
         //startGemPlacementProcess();
 
+    }
+
+    View bagRV;
+    void initializeFab()
+    {
+        bagRV = findViewById(R.id.bag_view);
+        FloatingActionButton myFab = (FloatingActionButton) findViewById(R.id.fab_button);
+        myFab.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if(bagRV.getVisibility() == View.VISIBLE)
+                    bagRV.setVisibility(View.INVISIBLE);
+                else
+                    bagRV.setVisibility(View.VISIBLE);
+            }
+        });
     }
 
 
@@ -232,7 +251,8 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
        // if(Build.VERSION.SDK_INT < 23)
          //   gpsTracker =new GpsTracker(this, mMap, SecondGamePlayActivity.this);
-
+        resizedMarker();
+        resizedMarker();
         checkPermissionAndStart();
 
 
@@ -252,8 +272,8 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
     void startLocationService()
     {
         Location lastKnownLocation =null;
-        if(gpsTracker.location==null)
-            gpsTracker.getLocation();
+       // if(gpsTracker.location==null)
+         //   gpsTracker.getLocation();
         if(gpsTracker.canGetLocation())
         {
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(13.0173608,76.0923321),15));
@@ -276,7 +296,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
     }
 
     List<Gem> liveObjects = new ArrayList<>();
-
+    Handler handlerLoad;
     void startSubscription()
     {
       /*  ParseLiveQueryClient parseLiveQueryClient = ParseLiveQueryClient.Factory.getClient();
@@ -301,7 +321,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                 Toast.makeText(getApplicationContext(),"Error", Toast.LENGTH_LONG).show();
             }
         });
-
+        //Don't forget to add this handler
         final Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             @Override
@@ -341,8 +361,8 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         */
 
 
-       final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
+        handlerLoad = new Handler();
+        handlerLoad.postDelayed(new Runnable() {
             @Override
             public void run() {
                 int time = 4000;
@@ -397,7 +417,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                 else
                     time = 1000;
 
-                handler.postDelayed(this, time);
+                handlerLoad.postDelayed(this, time);
             }
         }, 4000);
 
@@ -427,11 +447,12 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
             createToast("Something Null gem notify");
             return;
         }
+        int gemImageId = getGemImageId(gem.type, false);
         String type = gemType(gem.type);
         notification = new NotificationCompat.Builder(getApplicationContext())
                 .setContentTitle("Gem Lost")
                 .setContentText("You lost a " + type + " gem")
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(gemImageId)
                 .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
                 .setPriority(NotificationManager.IMPORTANCE_HIGH);
 
@@ -586,6 +607,33 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
     }
 
+    Bitmap forMarker(int type)
+    {
+        switch (type)
+        {
+            case 0: return diamond;
+            case 1: return ruby;
+            case 2: return emerald;
+        }
+        return emerald;
+    }
+    Bitmap diamond,ruby,emerald;
+    void resizedMarker()
+    {
+        int height = 80;
+        int width = 80;
+        BitmapDrawable bitmapdraw=(BitmapDrawable)getResources().getDrawable(R.drawable.gem_diamondd);
+        Bitmap b=bitmapdraw.getBitmap();
+        diamond = Bitmap.createScaledBitmap(b, width, height, false);
+        BitmapDrawable bitmapdraw2=(BitmapDrawable)getResources().getDrawable(R.drawable.gem_ruby);
+        Bitmap b2=bitmapdraw2.getBitmap();
+        ruby = Bitmap.createScaledBitmap(b2, width, height, false);
+        BitmapDrawable bitmapdraw3=(BitmapDrawable)getResources().getDrawable(R.drawable.gem_em);
+        Bitmap b3=bitmapdraw3.getBitmap();
+        emerald = Bitmap.createScaledBitmap(b3, width, height, false);
+
+    }
+
 
     void loadSecondGamePlayActivity()
     {
@@ -612,7 +660,22 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                         LatLng latLng = new LatLng(gem.location.getLatitude(), gem.location.getLongitude());
                         //gem.marker = marker;
                         myGems.add(gem);
+
                     }
+                    int totGems = 15;
+                    if(myGems.size()< totGems)
+                    {
+                        notification = new NotificationCompat.Builder(getApplicationContext())
+                                .setContentTitle("Gems lost")
+                                .setContentText("You lost"+ (totGems-myGems.size()) + "gem(s)")
+                                .setSmallIcon(R.mipmap.ic_launcher)
+                                .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
+                                .setPriority(NotificationManager.IMPORTANCE_HIGH);
+
+                        NotificationManager notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+                        notificationManager.notify(notificationIndex,notification.build());
+                    }
+
                 }
 
                 else
@@ -682,7 +745,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         }
         Location gemLocation = gem.location;
         LatLng latLng = new LatLng(gemLocation.getLatitude(), gemLocation.getLongitude());
-        gem.marker = mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+        gem.marker = mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromBitmap(forMarker(gem.type))));
     }
 
 
@@ -701,6 +764,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
     }
     float distanceToGrab = 5.3f;
     ArrayList<Gem> takeGems = new ArrayList<>();
+    Handler handlerFindGem;
     void findGemsAtCurrentLocation()
     {
         try {
@@ -708,8 +772,8 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
 
             final Location location = gpsTracker.location;
-            final Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
+            handlerFindGem = new Handler();
+            handlerFindGem.postDelayed( new Runnable() {
                 @Override
                 public void run() {
                     // grabGems.clear();
@@ -751,7 +815,7 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
                         }
                     }
 
-                    handler.postDelayed(this, 200);
+                    handlerFindGem.postDelayed(this, 200);
                 }
             }, 200);
         }
@@ -795,10 +859,10 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
             createToast("updateGramGemUI: gem null");
             return;
         }
-        int gemImage = getGemImageId(gem.type, false);
+        int gemImage = getGemImageId(gem.type, true);
         String gemName = gemType(gem.type);
         if(takable)
-            gemName = gemName + " Take";
+            gemImage = getGemImageId(gem.type,false);
         if(add){
            if(grabGemObjectIds.indexOf(gem.id)==-1) {
                grabGemObjectIds.add(gem.id);
@@ -841,9 +905,9 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
     {
         switch (type)
         {
-            case 0: return R.drawable.gem_yellow;
-            case 1: return R.drawable.gem_ruby;
-            case 2: return R.drawable.gem_green;
+            case 0: if(!dark)return  R.drawable.gem_diamondd;else return R.drawable.gem_diamondd_dark;
+            case 1: if(!dark) return R.drawable.gem_ruby;else return R.drawable.gem_ruby_dark;
+            case 2: if(!dark) return R.drawable.gem_em; else return R.drawable.gem_em_dark;
          }
          return 0;
     }
@@ -944,11 +1008,11 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
 
     String gemType(int type){
         if(type == 0)
-            return "Gold";
+            return "Diamond";
         else if(type == 1)
-            return "Silver";
+            return "Ruby";
         else
-            return "Bronze";
+            return "Emerald";
     }
 
     int bagCapacity = 3, totalGemsInBag = 0;
@@ -1115,6 +1179,9 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
     {
         if(!resultLoaded)
         {
+            gpsTracker.stopUsingGPS();
+            handlerFindGem.removeCallbacksAndMessages(null);
+            handlerLoad.removeCallbacksAndMessages(null);
             Intent resultActivity = new Intent(getApplicationContext(),SecondGamePlayActivity.class);
             startActivity(resultActivity);
             resultLoaded = true;
@@ -1122,13 +1189,6 @@ public class SecondGamePlayActivity extends FragmentActivity implements OnMapRea
         }
     }
 
-
-
-
-    void onClickBag()
-    {
-
-    }
 
 
 }

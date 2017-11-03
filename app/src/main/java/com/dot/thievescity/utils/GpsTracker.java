@@ -149,6 +149,8 @@ public class GpsTracker extends Service implements LocationListener {
 
                     if(location==null)
                         location = new Location("dummyProvider");
+                        location.setLatitude(25.0);
+                        location.setLongitude(25.0);
                 }
             }
         }

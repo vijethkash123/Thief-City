@@ -5,6 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -16,8 +19,11 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,6 +45,8 @@ import com.parse.ParseObject;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
 
+import org.w3c.dom.Text;
+
 import java.sql.Struct;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,7 +54,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class GamePlayActivity extends FragmentActivity implements OnMapReadyCallback {
+public class GamePlayActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     LocationManager locationManager;
@@ -62,11 +70,15 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
     public SharedPreferences sharedPreferences;
     public SharedPreferences.Editor editor;
     List<Polygon> permittedPolygons, restrictedPolygons;
+    boolean isRedOn = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game_play);
+       // Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        //setSupportActionBar(myToolbar);
+        //myToolbar.setTitleTextColor(Color.WHITE);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -78,10 +90,11 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
         initializeRandomLocations();
         if(sharedPreferences.getInt("activityOrder",0)==1)
         {
+            isRedOn = true;
             return;
         }
         editor.putInt("activityOrder", 1);
-        startGemPlacementProcess();
+        //startGemPlacementProcess();
 
     }
 
@@ -128,6 +141,7 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
        // if(Build.VERSION.SDK_INT < 23)
         //gpsTracker =new GpsTracker(this, mMap, GamePlayActivity.this);
         checkPermissionAndStart();
+        resizedMarker();
 
     }
 
@@ -168,7 +182,8 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
             restrictedPolygons = polygonClass.restrictedPolygons;
             //Location loc1 = gpsTracker.getLocation();
             //Location loc2 = gpsTracker.getLocation();
-
+            if(!isRedOn)
+                startGemPlacementProcess();
 
 
             //float distanceInMeters = loc1.distanceTo(loc2);
@@ -219,6 +234,24 @@ public class GamePlayActivity extends FragmentActivity implements OnMapReadyCall
             }
         }, 4000);
     }
+    ImageView imageView;
+
+    void setViewImage(int type)
+    {
+        imageView = (ImageView) findViewById(R.id.image_view_gem);
+        imageView.setImageResource(getGemImageId(type));
+    }
+
+    int getGemImageId (int type)
+    {
+        switch (type)
+        {
+            case 0: return R.drawable.gem_diamondd;
+            case 1: return R.drawable.gem_ruby;
+            case 2: return R.drawable.gem_em;
+        }
+        return 0;
+    }
 
     public boolean isLocationInPolygon(Polygon polygon, Location location)
     {
@@ -230,7 +263,7 @@ boolean first;
     void startGemPlacementProcess()
     {
       //  startLocationService = gpsTracker.location;
-        final TextView timerText = findViewById(R.id.timer_text);
+        final TextView timerText = (TextView)findViewById(R.id.timer_text);
         int timeForEachGem = 60*1000;
         first = true;
        // Gem myGem = myGems.get(gemIndex);
@@ -244,8 +277,9 @@ boolean first;
                         editor.putString("locationCurrent", s);
                         editor.apply();
                         first = false;
+                        setViewImage(myGems.get(gemIndex).type);
                     }
-                    timerText.setText(millisUntilFinished / 1000 + "");
+                    timerText.setText("00:"+millisUntilFinished / 1000 + "");
                     Log.i("Time:", millisUntilFinished / 1000 + "");
                 }
 
@@ -306,8 +340,8 @@ boolean first;
     {
         if(gpsTracker.location == null || !isPlaceable(gpsTracker.location))
         {
-           createToast("Cannot place here!!");
-            return;
+            //createToast("Cannot place here!!");
+            //return;
         }
         first = true;
         myTimer.cancel();
@@ -324,7 +358,7 @@ boolean first;
         //When user presses place button
         Gem gem = myGems.get(gemIndex);
         final String id = gem.id;
-        int type = gem.type;
+        final int type = gem.type;
         //GpsTracker gpsTracker = new GpsTracker(this);
         ParseObject parseObject = new ParseObject("Gem");
         parseObject.put("username", username);
@@ -336,15 +370,17 @@ boolean first;
             checkPermissionAndStart();
             return;
         }
-        final LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
+        LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
         //mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
         //Location currentLocation = gpsTracker.location;
         ParseGeoPoint point = new ParseGeoPoint(location.getLatitude(), location.getLongitude());
         if(isRandom){
-            LatLng latLng1 = randomLocations.get(x);
-            point = new ParseGeoPoint(latLng1.latitude, latLng1.longitude);
+            latLng = randomLocations.get(x);
+            point = new ParseGeoPoint(latLng.latitude, latLng.longitude);
             isRandom = false;
+            randomLocations.remove(x);
         }
+        final LatLng l2 = new LatLng(latLng.latitude, latLng.longitude);
         parseObject.put("location", point);
         parseObject.put("type", type);
         parseObject.put("isPlaced", true);
@@ -356,7 +392,7 @@ boolean first;
                 else
                 {
                     Toast.makeText(getApplication(),"Gem Placed successfully!",Toast.LENGTH_SHORT).show();
-                    Marker marker =  mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+                    Marker marker =  mMap.addMarker(new MarkerOptions().position(l2).icon(BitmapDescriptorFactory.fromBitmap(forMarker(type))));
                     markers.put(id, marker);
                     gemIndex++;
                     editor.putInt("pepeJeans", gemIndex);
@@ -370,6 +406,33 @@ boolean first;
         });
 
         //TODO: Save gemIndex locally
+    }
+
+    Bitmap forMarker(int type)
+    {
+        switch (type)
+        {
+            case 0: return diamond;
+            case 1: return ruby;
+            case 2: return emerald;
+        }
+        return emerald;
+    }
+    Bitmap diamond,ruby,emerald;
+    void resizedMarker()
+    {
+        int height = 80;
+        int width = 80;
+        BitmapDrawable bitmapdraw=(BitmapDrawable)getResources().getDrawable(R.drawable.gem_diamondd);
+        Bitmap b=bitmapdraw.getBitmap();
+        diamond = Bitmap.createScaledBitmap(b, width, height, false);
+        BitmapDrawable bitmapdraw2=(BitmapDrawable)getResources().getDrawable(R.drawable.gem_ruby);
+        Bitmap b2=bitmapdraw2.getBitmap();
+        ruby = Bitmap.createScaledBitmap(b2, width, height, false);
+        BitmapDrawable bitmapdraw3=(BitmapDrawable)getResources().getDrawable(R.drawable.gem_em);
+        Bitmap b3=bitmapdraw3.getBitmap();
+        emerald = Bitmap.createScaledBitmap(b3, width, height, false);
+
     }
 
     boolean isPlaceable(Location location)

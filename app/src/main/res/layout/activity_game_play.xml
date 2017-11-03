@@ -4,6 +4,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+  <!--  <android.support.v7.widget.Toolbar
+        android:id="@+id/my_toolbar"
+        android:layout_width="361dp"
+        android:layout_height="56dp"
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="0dp"
+        android:background="@android:color/white"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintLeft_toLeftOf="@+id/map"
+        app:layout_constraintRight_toRightOf="@+id/map"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        tools:layout_editor_absoluteY="-39dp" />  -->
+
     <fragment xmlns:map="http://schemas.android.com/apk/res-auto"
 
         android:id="@+id/map"
@@ -14,78 +29,77 @@
         tools:layout_constraintTop_creator="1"
         tools:layout_constraintRight_creator="1"
         tools:layout_constraintBottom_creator="1"
-        android:layout_marginStart="0dp"
         map:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginEnd="0dp"
-        android:layout_marginTop="0dp"
         tools:layout_constraintLeft_creator="1"
-        android:layout_marginBottom="0dp"
         map:layout_constraintLeft_toLeftOf="parent"
         map:layout_constraintTop_toTopOf="parent"
-        android:layout_marginLeft="0dp"
-        android:layout_marginRight="0dp"
         map:layout_constraintHorizontal_bias="0.0"
         map:layout_constraintVertical_bias="1.0"
         map:layout_constraintRight_toRightOf="parent" />
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar2"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="0dp"
-        android:layout_marginLeft="0dp"
-        android:layout_marginRight="0dp"
-        android:background="?attr/colorPrimary"
-        android:minHeight="?attr/actionBarSize"
-        android:theme="?attr/actionBarTheme"
-        app:layout_constraintBottom_toBottomOf="@+id/map"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
+  <ImageView
+      android:id="@+id/white_image"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:background="#ECEFF1"
+      android:elevation="2dp"
+      android:minHeight="?attr/actionBarSize"
+      android:theme="?attr/actionBarTheme"
+      app:layout_constraintBottom_toBottomOf="@+id/map"
+      app:layout_constraintHorizontal_bias="1.0"
+      app:layout_constraintLeft_toLeftOf="parent"
+      app:layout_constraintRight_toRightOf="parent" />
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@mipmap/ic_launcher"
-        android:layout_marginLeft="16dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/toolbar2"
-        android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toBottomOf="@+id/toolbar2"
-        android:layout_marginBottom="8dp" />
+  <ImageView
+      android:id="@+id/image_view_gem"
+      android:layout_width="50dp"
+      android:layout_height="50dp"
+      android:layout_marginBottom="8dp"
+      android:layout_marginLeft="16dp"
+      android:layout_marginStart="16dp"
+      android:layout_marginTop="8dp"
+      android:adjustViewBounds="true"
+      android:elevation="8dp"
+      android:scaleType="centerInside"
+      android:src="@mipmap/ic_launcher"
+      app:layout_constraintBottom_toBottomOf="@+id/white_image"
+      app:layout_constraintLeft_toLeftOf="parent"
+      app:layout_constraintTop_toTopOf="@+id/white_image" />
 
-    <TextView
-        android:id="@+id/timer_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="8dp"
-        android:background="@color/common_google_signin_btn_text_dark_default"
-        android:text="TextView"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="@+id/toolbar2"
-        app:layout_constraintLeft_toRightOf="@+id/imageView"
-        app:layout_constraintTop_toTopOf="@+id/toolbar2"
-        tools:layout_constraintBottom_creator="1"
-        tools:layout_constraintLeft_creator="1" />
+  <TextView
+      android:id="@+id/timer_text"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="16dp"
+      android:layout_marginLeft="16dp"
+      android:layout_marginStart="16dp"
+      android:elevation="8dp"
+      android:text="01:00"
+      android:textSize="20sp"
+      app:layout_constraintBottom_toBottomOf="@+id/white_image"
+      app:layout_constraintLeft_toRightOf="@+id/image_view_gem"
+      tools:layout_constraintBottom_creator="1"
+      tools:layout_constraintLeft_creator="1" />
 
-    <Button
-        android:id="@+id/button3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="onGemPlace"
-        android:text="Place"
-        app:layout_constraintHorizontal_bias="0.922"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        tools:layout_constraintLeft_creator="1"
-        android:layout_marginRight="8dp"
-        app:layout_constraintTop_toTopOf="@+id/toolbar2"
-        android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toBottomOf="@+id/toolbar2"
-        android:layout_marginBottom="8dp" />
+  <Button
+      android:id="@+id/button3"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="8dp"
+      android:layout_marginEnd="8dp"
+      android:layout_marginRight="8dp"
+      android:layout_marginTop="8dp"
+      android:shadowColor="#BABABA"
+      android:background="@drawable/button_image"
+      android:elevation="4dp"
+      android:onClick="onGemPlace"
+      android:text="Place"
+      app:layout_constraintBottom_toBottomOf="@+id/white_image"
+      app:layout_constraintHorizontal_bias="0.922"
+      app:layout_constraintLeft_toLeftOf="parent"
+      app:layout_constraintRight_toRightOf="parent"
+      app:layout_constraintTop_toTopOf="@+id/white_image"
+      tools:layout_constraintLeft_creator="1" />
 
 
 </android.support.constraint.ConstraintLayout>

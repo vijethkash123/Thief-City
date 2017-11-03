@@ -4,8 +4,12 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.Adapter;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
 import com.parse.FindCallback;
 import com.parse.ParseException;
@@ -13,6 +17,7 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -22,6 +27,7 @@ public class ResultActivity extends AppCompatActivity {
     String username;
     int score = 0;
     public List<User> allUsers;
+    ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,19 +36,33 @@ public class ResultActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
         username = ParseUser.getCurrentUser().getUsername();
+        //initializeListView();
         getUsers();
         getGems();
         sortList();
+    }
+
+    List<String> texts = new ArrayList<>();
+    void createTextList()
+    {
+        texts.add("Rank\tTeam Name\tScore");
+        int rank = 1;
+        for(User user: allUsers)
+        {
+            texts.add(rank+"\t"+user.username+"\t"+user.score);
+            rank++;
+        }
+        initializeListView();
+    }
+
+    ArrayAdapter adapter;
+    void initializeListView()
+    {
+        listView = (ListView)findViewById(R.id.result_list);
+        adapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_list_item_1,texts);
+        listView.setClickable(false);
+        listView.setAdapter(adapter);
     }
 
     void getUsers()
