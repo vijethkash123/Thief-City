@@ -109,18 +109,26 @@ public class PolygonClass{
              Polygon polygonMainBlock = googleMap.addPolygon (new PolygonOptions()
                      .clickable(false)
                      .add(
-                             new LatLng(13.023155,76.102638),
-                             new LatLng(13.023261,76.102671),
-                             new LatLng(13.023431,76.102189),
-                             new LatLng(13.023945,76.102371),
-                             new LatLng(13.023774,76.10286),
-                             new LatLng(13.023892,76.102893),
-                             new LatLng(13.024096,76.102298),
-                             new LatLng(13.023363,76.102043),
-                             new LatLng(13.0236042,76.102412),
-                             new LatLng(13.02349,76.102344),
-                             new LatLng(13.023456,76.102718),
-                             new LatLng(13.023155,76.102638)));
+                             new LatLng(13.023114,76.102626),
+                             new LatLng(13.023272,76.102684),
+                             new LatLng(13.023436,76.102218),
+                             new LatLng(13.023590,76.102328),
+                             new LatLng(13.023716,76.102368),
+                             new LatLng(13.023735,76.102315),
+                             new LatLng(13.023916,76.102379),
+                             new LatLng(13.023753,76.102862),
+                             new LatLng(13.023878,76.102900),
+                             new LatLng(13.024092,76.102297),
+                             new LatLng(13.023767,76.102162),
+                             new LatLng(13.023774,76.102110),
+                             new LatLng(13.023700,76.102082),
+                             new LatLng(13.023666,76.102140),
+                             new LatLng(13.023341,76.102032),
+                             new LatLng(13.023264,76.102038),
+                             new LatLng(13.023229,76.102110),
+                             new LatLng(13.023095,76.102490),
+                             new LatLng(13.023120,76.102539),
+                             new LatLng(13.023113.102573)));
              polygonMainBlock.setTag("beta");
              restrictedPolygons.add(polygonMainBlock);
 
@@ -176,36 +184,30 @@ public class PolygonClass{
              permittedPolygons.add(boundary);
              boundary.setFillColor(permColor);
 
-          /*   Polygon mainBlock = googleMap.addPolygon(new PolygonOptions()
+             Polygon mainBlock = googleMap.addPolygon(new PolygonOptions()
                      .clickable(false)
                      .add(
-                             new LatLng(13.024041666,76.10229833),
-                             new LatLng(13.024021666,76.10237666),
-                             new LatLng(13.0243419,76.1024457),
-                             new LatLng(13.02389833,76.102311666),
-                             new LatLng(13.02389166,76.102951666),
-                             new LatLng(13.02382499,76.10295),
-                             new LatLng(13.02379,76.1024003),
-                             new LatLng(13.02369833,76.102468333),
-                             new LatLng(13.0236117,76.102355),
-                             new LatLng(13.0236200,76.10227),
-                             new LatLng(13.0232533,76.10269333),
-                             new LatLng(13.02325166,76.102695),
-                             new LatLng(13.02305166,76.102675),
-                             new LatLng(13.02305999,76.01024233),
-                             new LatLng(13.02296333,76.10233333),
-                             new LatLng(13.02295833,76.10231),
-                             new LatLng(13.02291333,76.102255),
-                             new LatLng(13.02292500,76.10225666),
-                             new LatLng(13.02299250,76.10225666),
-                             new LatLng(13.02299166,76.10191333),
-                             new LatLng(13.0236,76.101913333),
-                             new LatLng(13.0236,76.10210666),
-                             new LatLng(13.0236,76.10204999),
-                             new LatLng(13.02376166,76.102075),
-                             new LatLng(13.02377999,76.10213333)
-                     ));
-             restrictedPolygons.add(mainBlock);  */
+                             new LatLng(13.023114,76.102626),
+                             new LatLng(13.023272,76.102684),
+                             new LatLng(13.023436,76.102218),
+                             new LatLng(13.023590,76.102328),
+                             new LatLng(13.023716,76.102368),
+                             new LatLng(13.023735,76.102315),
+                             new LatLng(13.023916,76.102379),
+                             new LatLng(13.023753,76.102862),
+                             new LatLng(13.023878,76.102900),
+                             new LatLng(13.024092,76.102297),
+                             new LatLng(13.023767,76.102162),
+                             new LatLng(13.023774,76.102110),
+                             new LatLng(13.023700,76.102082),
+                             new LatLng(13.023666,76.102140),
+                             new LatLng(13.023341,76.102032),
+                             new LatLng(13.023264,76.102038),
+                             new LatLng(13.023229,76.102110),
+                             new LatLng(13.023095,76.102490),
+                             new LatLng(13.023120,76.102539),
+                             new LatLng(13.023113.102573)));
+             restrictedPolygons.add(mainBlock);  
              Polygon csDept = googleMap.addPolygon(new PolygonOptions()
                      .clickable(false)
                      .add(
@@ -245,20 +247,34 @@ public class PolygonClass{
                      ));
              permittedPolygons.add(ground);
              ground.setFillColor(permColor);
+             
+             
+             Polygon networkroom =googleMap.addPolygon(new PolyOptions()
+                     .clickable(false)
+                     .add(
+                             new LatLng(13.023171,76.103569),
+                             new LatLng(13.023069,76.103536),
+                             new LatLng(13.023091,76.103449),
+                             new LatLng(13.023031,76.103425),
+                             new LatLng(13.022997,76.103510),
+                             new LatLng(13.023888,76.103466),
+                             new LatLng(13.023958,76.103288),
+                             new LatLng(13.023045,76.103313),
+                             new LatLng(13.023065,76.103265),
+                              new LatLng(13.023167,76.103303),
+                             new LatLng(13.023168,76.103308),
+                         new LatLng(13.023162,76.103351)
+                     ));
+             permittedPolygons.add(network);
+             ground.setFillColor(permColor);
 
              Polygon civilPG = googleMap.addPolygon(new PolygonOptions()
                      .clickable(false)
                      .add(
-                             new LatLng(13.02334629,76.10361792),
-                             new LatLng(13.0233742,76.10354135),
-                             new LatLng(13.023509,76.10346172),
-                             new LatLng(13.02356201,76.10352153),
-                             new LatLng(13.0236171,76.10353936),
-                             new LatLng(13.02361252,76.10361),
-                             new LatLng(13.0235019,76.10369364),
-                             new LatLng(13.02341734,76.10368079)
-
-
+                             new LatLng(13.023567,76.103410),
+                             new LatLng(13.023656,76.103585),
+                             new LatLng(13.023458,76.103689),
+                             new LatLng(13.023359,76.103531)             
                      ));
              restrictedPolygons.add(civilPG);
              civilPG.setFillColor(resColor);
