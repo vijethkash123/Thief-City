@@ -93,6 +93,7 @@
       android:background="@drawable/button_image"
       android:elevation="4dp"
       android:onClick="onGemPlace"
+      android:textColor="#ffffff"
       android:text="Place"
       app:layout_constraintBottom_toBottomOf="@+id/white_image"
       app:layout_constraintHorizontal_bias="0.922"

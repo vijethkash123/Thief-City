@@ -16,8 +16,13 @@
     </string>
     <string name="title_activity_game_play">Thief City</string>
     <string name="title_activity_sign_in">Thief City</string>
-    <string name="title_activity_instructions">Thief City</string>
+    <string name="title_activity_instructions">Instructions</string>
     <string name="title_activity_second_game_play">Thief City</string>
     <string name="title_activity_polygon_draw">Thief City</string>
     <string name="title_activity_result">Thief City</string>
+    <string name="content_instruction_1">A city full of thieves,  where thievery is the main vocation. Each gang’s bread and butter is counting on the loot stolen</string>
+    <string name="ci2">When the game starts, each team is given with 15   gemstones which needs to be hidden from other teams, in various places inside the college campus.</string>
+    <string name="ci3">All the given gems must be hidden within  first 15 minutes of the game(one minute for one gem) . To place a gem, one must go to the intended location where one wants to hide the gem, and press the place button. If a team takes more than one minute to place a gem, the gem shall be placed at the current location of the team. </string>
+    <string name="ci4"> After placing all the given gems, the team ventures into hunting down gems hidden by other teams. When a gem is at a thief’s vicinity, he/she can steal the gem. The stolen gems are to be kept in a bag which can hold at-most of three gems. If the bag is full, to steal the next gem, the ones inside the bag must be placed. LET THE LOOT BEGIN!!! </string>
+    <string name="ci5">Let the loot begin</string>
 </resources>

@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.ParcelUuid;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -35,14 +34,7 @@ public class SignInActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+
     }
 
     void checkGameStarted()
@@ -68,10 +60,10 @@ public class SignInActivity extends AppCompatActivity {
     public void onSignIn(View view)
     {
        // Log.i("I am here", "here");
-        EditText usernameField = (EditText)findViewById(R.id.user_name_field);
+        EditText usernameField = (EditText)findViewById(R.id.user_name_field2);
         String username = usernameField.getText().toString();
         Log.i("Name",username);
-        EditText passwordField = (EditText)findViewById(R.id.password_field);
+        EditText passwordField = (EditText)findViewById(R.id.password_field2);
         String password = passwordField.getText().toString();
         Log.i("Password",password);
         ParseUser.logInInBackground(username, password, new LogInCallback() {
@@ -130,6 +122,7 @@ public class SignInActivity extends AppCompatActivity {
            ParseObject parseObject = new ParseObject("UserList");
            parseObject.put("username", usernameGlobal);
            parseObject.put("loggedIn", true);
+           parseObject.put("score",0);
            parseObject.saveInBackground();
            Intent toInstructionsActivity = new Intent(getApplicationContext(), InstructionsActivity.class);
            startActivity(toInstructionsActivity);

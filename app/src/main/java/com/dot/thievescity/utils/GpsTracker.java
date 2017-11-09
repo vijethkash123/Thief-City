@@ -299,6 +299,7 @@ public class GpsTracker extends Service implements LocationListener {
                     else
                         if(myActivity!=null)
                             myActivity.restartGPS();
+                    handler.removeCallbacksAndMessages(null);
                 }
                 else
                     handler.postDelayed(this,300);

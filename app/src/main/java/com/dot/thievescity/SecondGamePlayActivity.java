@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.location.LocationListener;
@@ -22,6 +23,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -46,21 +48,26 @@ import com.google.maps.android.PolyUtil;
 import com.parse.FindCallback;
 //mport com.parse.LiveQueryException;
 import com.parse.FunctionCallback;
+import com.parse.LiveQueryException;
 import com.parse.ParseCloud;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
 //import com.parse.ParseLiveQueryClient;
+import com.parse.ParseLiveQueryClient;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
+import com.parse.SubscriptionHandling;
 //import com.parse.SubscriptionHandling;
 import android.os.Handler;
 
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 //import java.util.logging.Handler;
 
@@ -104,10 +111,10 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-
-       // Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar_second);
-        //setSupportActionBar(myToolbar);
-        //myToolbar.setTitleTextColor(Color.WHITE);
+        //if(isGameFinished)finishGame();
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar_second);
+        setSupportActionBar(myToolbar);
+        myToolbar.setTitleTextColor(Color.WHITE);
         initializeRV();
         Log.i("here", 107+"");
         initializeBagRV();
@@ -175,6 +182,12 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
 
 
     }
+
+    @Override
+    public void onBackPressed() {
+        // Simply Do noting!
+    }
+
 
     private RecyclerView bagRecyclerView;
     private RecyclerView.LayoutManager bagLayoutManager;
@@ -276,7 +289,7 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
          //   gpsTracker.getLocation();
         if(gpsTracker.canGetLocation())
         {
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(13.0173608,76.0923321),15));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(13.023727,76.102132),18));
         }
         else Toast.makeText(this,"Can't get location",Toast.LENGTH_SHORT).show();
         PolygonClass polygonClass = new PolygonClass(mMap);
@@ -297,9 +310,12 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
 
     List<Gem> liveObjects = new ArrayList<>();
     Handler handlerLoad;
+    //Handler liveHandler;
+    Runnable r1,r2;
     void startSubscription()
     {
       /*  ParseLiveQueryClient parseLiveQueryClient = ParseLiveQueryClient.Factory.getClient();
+        //ParseLiveQueryClient parseLiveQueryClient = ParseLiveQueryClient.Factory.getClient(new URI("ws://myparseinstance.com"));
         ParseQuery<ParseObject> parseQuery = ParseQuery.getQuery("Gem");
 
         SubscriptionHandling<ParseObject> subscriptionHandling = parseLiveQueryClient.subscribe(parseQuery);
@@ -310,7 +326,8 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
                 // HANDLING all events
                 Gem gem = parseObjectToGem(object);
                 liveObjects.add(gem);
-                //Toast.makeText(getApplicationContext(),"Username:"+gem.username ,Toast.LENGTH_SHORT).show();
+                Log.i("Live","318");
+                Toast.makeText(getApplicationContext(),"Username:"+gem.username ,Toast.LENGTH_SHORT).show();
 
             }
         });
@@ -322,19 +339,23 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
             }
         });
         //Don't forget to add this handler
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
+        liveHandler = new Handler();
+        liveHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 if(liveObjects.size()==0)
                 {
-                    handler.postDelayed(this,300);
+                    liveHandler.postDelayed(this,300);
                     return;
                 }
                 for(Iterator<Gem> iterator = liveObjects.iterator(); iterator.hasNext();) {
                     //Gem gem = liveObjects.get(0);
                     Gem gem = iterator.next();
                     Gem requiredGem = findGem(gem.id);
+                    if(gem.id.equals("myID")) {
+                        finishGame();
+                        return;
+                    }
                     //if(requiredGem == null)
                     //createToast("243");
                     //boolean yours = requiredGem.username.equals(username);
@@ -354,15 +375,15 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
                     Log.i("Here", gem.username);
                     iterator.remove();
                 }
-                handler.postDelayed(this,300);
+                liveHandler.postDelayed(this,300);
             }
         },300);
 
-        */
+*/
 
-
+       // if(isGameFinished)return;
         handlerLoad = new Handler();
-        handlerLoad.postDelayed(new Runnable() {
+        r1 = new Runnable() {
             @Override
             public void run() {
                 int time = 4000;
@@ -382,8 +403,8 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
                                     Gem gem = parseObjectToGem(object);
                                     //Toast.makeText(getApplicationContext(),"Username:"+gem.username ,Toast.LENGTH_SHORT).show();
                                     Gem requiredGem = findGem(gem.id);
-                                    if(requiredGem == null)
-                                        createToast("243");
+                                    //if(requiredGem == null)
+                                    //  createToast("243");
                                     //boolean yours = requiredGem.username.equals(username);
                                     if (requiredGem != null && requiredGem.username.equals(username) && !gem.username.equals(username))
                                         notifyGemLost(gem);
@@ -405,7 +426,7 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
                                 loaded = true;
                             }
                             catch (Exception ex) {
-                               createToast("Handler:Done:Query:Background");
+                                // createToast("Handler:Done:Query:Background");
                             }
                         }
 
@@ -416,10 +437,12 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
                 }
                 else
                     time = 1000;
-
-                handlerLoad.postDelayed(this, time);
+                if(!isGameFinished) {
+                    handlerLoad.postDelayed(this, time);
+                }
             }
-        }, 4000);
+        };
+        handlerLoad.postDelayed(r1, 4000);
 
 
     }
@@ -430,7 +453,7 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
             return;
         finishLd = false;
         ParseQuery parseQuery = new ParseQuery("Finish");
-        parseQuery.whereEqualTo("objectId", "rcGoeCkH54");
+        parseQuery.whereEqualTo("objectId", "UgGe9RTYwG");
         parseQuery.setLimit(1);
         parseQuery.findInBackground(new FindCallback<ParseObject>() {
             public void done(List<ParseObject> finished, ParseException e) {
@@ -496,7 +519,7 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
     void updateGem(Gem requiredGem, Gem gem)
     {
         if(requiredGem == null || gem ==null) {
-            createToast("Something Null gem or required gem");
+           // createToast("Something Null gem or required gem");
             return;
         }
         requiredGem.id = gem.id;
@@ -514,7 +537,7 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
                return gem;
 
        }
-       createToast("Returned Null from findGem 324");
+       //createToast("Returned Null from findGem 324");
        return null;
     }
 
@@ -543,7 +566,7 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
 
     } */
 
-
+    Location location2;
     public void placeGem(Gem gem){
         //When user presses place button
         try {
@@ -575,6 +598,7 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
                         ParseGeoPoint point = new ParseGeoPoint(gpsTracker.location.getLatitude(), gpsTracker.location.getLongitude());
                         parseObject.put("location", point);
                         parseObject.put("isPlaced", true);
+                        location2 = gpsTracker.location;
                         parseObject.put("type", type);
                         parseObject.saveInBackground(new SaveCallback() {
                             @Override
@@ -584,8 +608,10 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
                                 else {
                                     Toast.makeText(getApplicationContext(), "Place Successful!", Toast.LENGTH_SHORT).show();
                                     Gem gem = findGem(objectId);
-                                    if (gem != null)
+                                    if (gem != null) {
                                         gem.isPlaced = true;
+                                        gem.location = location2;
+                                    }
                                     addMarker(gem);
                                     updateBagUI(gem, false);
                                 }
@@ -599,7 +625,7 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
         }
         catch (Exception e)
         {
-            createToast("placeGem exception");
+           // createToast("placeGem exception");
         }
 
 
@@ -667,13 +693,13 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
                     {
                         notification = new NotificationCompat.Builder(getApplicationContext())
                                 .setContentTitle("Gems lost")
-                                .setContentText("You lost"+ (totGems-myGems.size()) + "gem(s)")
+                                .setContentText("You lost "+ (totGems-myGems.size()) + " gem(s)")
                                 .setSmallIcon(R.mipmap.ic_launcher)
                                 .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
                                 .setPriority(NotificationManager.IMPORTANCE_HIGH);
 
                         NotificationManager notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-                        notificationManager.notify(notificationIndex,notification.build());
+                        notificationManager.notify(103,notification.build());
                     }
 
                 }
@@ -689,7 +715,7 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
     Gem parseObjectToGem(ParseObject object)
     {
         if( object ==null) {
-            createToast("ParseObjectToGem:object Null");
+            //createToast("ParseObjectToGem:object Null");
             return null;
         }
         ParseGeoPoint parseGeoPoint = object.getParseGeoPoint("location");
@@ -717,8 +743,10 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
                         addMarker(gem);
                         if(gem.username.equals(username) && !gem.isPlaced)
                         {
-                            if(grabGemObjectIds.indexOf(gem.id)==-1)
+                            if(grabGemObjectIds.indexOf(gem.id)==-1) {
+                                totalGemsInBag++;
                                 updateBagUI(gem, true);
+                            }
                         }
                         allGems.add(gem);
                         date = object.getUpdatedAt();
@@ -740,7 +768,7 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
     void addMarker(Gem gem)
     {
         if( gem ==null) {
-            createToast("addMarker gem null");
+           // createToast("addMarker gem null");
             return;
         }
         Location gemLocation = gem.location;
@@ -770,10 +798,10 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
         try {
             minDistance = 10.0f;
 
-
+           // if(isGameFinished)return;
             final Location location = gpsTracker.location;
             handlerFindGem = new Handler();
-            handlerFindGem.postDelayed( new Runnable() {
+            r2 = new Runnable() {
                 @Override
                 public void run() {
                     // grabGems.clear();
@@ -781,18 +809,18 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
                     for (Gem gem : temp) {
                         float distance = location.distanceTo(gem.location);
                         if (distance <= minDistance) {
-                                if (findGrabGem(gem.id) == null && !gem.username.equals(username)) {
-                                    grabGems.add(gem);
-                                    if(distance > distanceToGrab)
+                            if (findGrabGem(gem.id) == null && !gem.username.equals(username)) {
+                                grabGems.add(gem);
+                                if(distance > distanceToGrab)
                                     updateGrabGemUI(gem, true, false);
-                                }
-                            } else {
-                                if (findGrabGem(gem.id) != null) {
-                                    grabGems.remove(gem);
-                                    takeGems.remove(gem);
-                                    updateGrabGemUI(gem, false, false);
-                                }
                             }
+                        } else {
+                            if (findGrabGem(gem.id) != null) {
+                                grabGems.remove(gem);
+                                takeGems.remove(gem);
+                                updateGrabGemUI(gem, false, false);
+                            }
+                        }
 
                     }
 
@@ -814,16 +842,23 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
                             }
                         }
                     }
-
-                    handlerFindGem.postDelayed(this, 200);
+                    if(!isGameFinished)
+                        handlerFindGem.postDelayed(this, 200);
+                    else
+                    {
+                        h2 = true;
+                        handlerFindGem.removeCallbacksAndMessages(null);
+                    }
                 }
-            }, 200);
+            };
+            handlerFindGem.postDelayed(r2, 200);
         }
         catch (Exception e)
         {
-            createToast("Exception:findGemsAtCurrentLocation");
+            //createToast("Exception:findGemsAtCurrentLocation");
         }
     }
+    static boolean h1= false,h2 = false;
 
     Gem findGrabGem(String objectId)
     {
@@ -856,7 +891,7 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
     void updateGrabGemUI(Gem gem , boolean add, boolean takable)
     {
         if(gem == null) {
-            createToast("updateGramGemUI: gem null");
+           // createToast("updateGramGemUI: gem null");
             return;
         }
         int gemImage = getGemImageId(gem.type, true);
@@ -962,7 +997,7 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
     void updateBagUI(Gem gem , boolean add)
     {
         if( gem ==null) {
-            createToast("gem null UpdateBagUI");
+            //createToast("gem null UpdateBagUI");
             return;
         }
         String gemName = gemType(gem.type);
@@ -1054,7 +1089,7 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
         }
         catch (Exception e)
         {
-            createToast("Here is the bug! 752");
+           // createToast("Here is the bug! 752");
         }
 
 
@@ -1089,7 +1124,7 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
         }
         catch (Exception e)
         {
-            createToast("Exception:grabGem");
+           // createToast("Exception:grabGem");
         }
     }
 
@@ -1173,16 +1208,22 @@ public class SecondGamePlayActivity extends AppCompatActivity implements OnMapRe
             e.printStackTrace();
         }
     }
-
+    public static boolean isGameFinished = false;
     boolean resultLoaded = false;
     void finishGame()
     {
         if(!resultLoaded)
         {
+            isGameFinished = true;
+            if(gpsTracker!=null)
             gpsTracker.stopUsingGPS();
-            handlerFindGem.removeCallbacksAndMessages(null);
-            handlerLoad.removeCallbacksAndMessages(null);
-            Intent resultActivity = new Intent(getApplicationContext(),SecondGamePlayActivity.class);
+            if(handlerFindGem!=null&& handlerLoad!=null) {
+                handlerFindGem.removeCallbacks(r2);
+                handlerLoad.removeCallbacks(r1);
+            }
+            createToast("Game finished");
+            //liveHandler.removeCallbacksAndMessages(null);
+            Intent resultActivity = new Intent(getApplicationContext(),ResultActivity.class);
             startActivity(resultActivity);
             resultLoaded = true;
             finish();

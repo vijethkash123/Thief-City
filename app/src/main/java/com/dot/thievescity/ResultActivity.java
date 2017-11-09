@@ -6,10 +6,12 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.Adapter;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.parse.FindCallback;
 import com.parse.ParseException;
@@ -28,6 +30,8 @@ public class ResultActivity extends AppCompatActivity {
     int score = 0;
     public List<User> allUsers;
     ListView listView;
+    TextView textView;
+    User me;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,12 +39,15 @@ public class ResultActivity extends AppCompatActivity {
         setContentView(R.layout.activity_result);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+        allUsers = new ArrayList<>();
+        textView = (TextView) findViewById(R.id.textView_loading);
+        //allGems = new ArrayList<>();
         username = ParseUser.getCurrentUser().getUsername();
         //initializeListView();
-        getUsers();
-        getGems();
-        sortList();
+        //getUsers();
+       // getGems();
+        //sortList();
+        displayScore();
     }
 
     List<String> texts = new ArrayList<>();
@@ -53,13 +60,13 @@ public class ResultActivity extends AppCompatActivity {
             texts.add(rank+"\t"+user.username+"\t"+user.score);
             rank++;
         }
-        initializeListView();
+        //initializeListView();
     }
 
     ArrayAdapter adapter;
     void initializeListView()
     {
-        listView = (ListView)findViewById(R.id.result_list);
+        //listView = (ListView)findViewById(R.id.result_list);
         adapter = new ArrayAdapter(getApplicationContext(), android.R.layout.simple_list_item_1,texts);
         listView.setClickable(false);
         listView.setAdapter(adapter);
@@ -67,13 +74,16 @@ public class ResultActivity extends AppCompatActivity {
 
     void getUsers()
     {
-        ParseQuery query = new ParseQuery("User");
+        ParseQuery query = new ParseQuery("UserList");
         query.findInBackground(new FindCallback<ParseObject>() {
             public void done(List<ParseObject> users, ParseException e) {
                 for(ParseObject userObject : users){
                     User user = parseObjectToUser(userObject);
                     allUsers.add(user);
+                    if(user.username.equals(username))
+                    me = user;
                 }
+                getGems();
             }
         });
     }
@@ -88,8 +98,17 @@ public class ResultActivity extends AppCompatActivity {
                     if(user==null)continue;
                     user.score += valueOfGem(gem.getInt("type"));
                 }
+                sortList();
+                displayResult();
             }
         });
+    }
+
+    void displayResult()
+    {
+         int rank = allUsers.indexOf(me) + 1;
+         int score = me.score;
+         textView.setText("Team Name: " + username+"\n" + "Score: " + score + "\n" + "Rank: " + rank);
     }
 
     User findUser(ParseObject gem)
@@ -130,13 +149,62 @@ public class ResultActivity extends AppCompatActivity {
         Collections.sort(allUsers, new Comparator<User>() {
             @Override
             public int compare(User u1, User u2) {
-                if (u1.score > u2.score)
-                    return 1;
                 if (u1.score < u2.score)
+                    return 1;
+                if (u1.score >= u2.score)
                     return -1;
                 return 0;
             }
         });
+    }
+
+    void displayScore()
+    {
+        score = 0;
+        ParseQuery query = new ParseQuery("Gem");
+        query.whereEqualTo("username", username);
+        query.findInBackground(new FindCallback<ParseObject>() {
+            public void done(List<ParseObject> allGems, ParseException e) {
+                for(ParseObject gem : allGems){
+                    int type = gem.getInt("type");
+                    int value = valueOfGem(type);
+                    score = score + value;
+                }
+                textView.setText("TeamName: "+username+ "\n" + "Score: " + score);
+
+                updateScore();
+            }
+        });
+
+
+    }
+
+    void updateScore()
+    {
+        try {
+            ParseQuery<ParseObject> query = ParseQuery.getQuery("UserList");
+            query.whereEqualTo("username", username);
+            query.setLimit(1);
+            query.findInBackground(new FindCallback<ParseObject>() {
+                public void done(List<ParseObject> scoreList, ParseException e) {
+                    if (e == null) {
+                        if(scoreList.size()== 0)
+                            return;
+                        ParseObject object = scoreList.get(0);
+                        object.put("score", score);
+                        object.saveInBackground();
+
+                    } else {
+                        Log.i("Error", "Something happened");
+
+                    }
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
 
@@ -152,3 +220,5 @@ class User{
         this.score = score;
     }
 }
+
+

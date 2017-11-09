@@ -206,16 +206,17 @@ public class PolygonClass{
                              new LatLng(13.023229,76.102110),
                              new LatLng(13.023095,76.102490),
                              new LatLng(13.023120,76.102539),
-                             new LatLng(13.023113.102573)));
-             restrictedPolygons.add(mainBlock);  
+                             new LatLng(13.023113,76.102573)));
+             restrictedPolygons.add(mainBlock);
+             mainBlock.setFillColor(resColor);
+
              Polygon csDept = googleMap.addPolygon(new PolygonOptions()
                      .clickable(false)
                      .add(
-                             new LatLng(13.02270833, 76.10357333),
-                             new LatLng(13.02253500, 76.10346666),
-                             new LatLng(13.0230214, 76.1023544),
-                             new LatLng(13.02288666, 76.10248333),
-                             new LatLng(13.02302333, 76.10255000)
+                             new LatLng(13.023034, 76.102486),
+                             new LatLng(13.022697, 76.103511),
+                             new LatLng(13.022576, 76.103470),
+                             new LatLng(13.022924, 76.102433)
                      ));
              restrictedPolygons.add(csDept);
              csDept.setFillColor(resColor);
@@ -249,24 +250,16 @@ public class PolygonClass{
              ground.setFillColor(permColor);
              
              
-             Polygon networkroom =googleMap.addPolygon(new PolyOptions()
+             Polygon networkroom =googleMap.addPolygon(new PolygonOptions()
                      .clickable(false)
                      .add(
-                             new LatLng(13.023171,76.103569),
-                             new LatLng(13.023069,76.103536),
-                             new LatLng(13.023091,76.103449),
-                             new LatLng(13.023031,76.103425),
-                             new LatLng(13.022997,76.103510),
-                             new LatLng(13.023888,76.103466),
-                             new LatLng(13.023958,76.103288),
-                             new LatLng(13.023045,76.103313),
-                             new LatLng(13.023065,76.103265),
-                              new LatLng(13.023167,76.103303),
-                             new LatLng(13.023168,76.103308),
-                         new LatLng(13.023162,76.103351)
+                             new LatLng(13.023256,76.103338),
+                             new LatLng(13.022937,76.103233),
+                             new LatLng(13.022894,76.103470),
+                             new LatLng(13.023173,76.103566)
                      ));
-             permittedPolygons.add(network);
-             ground.setFillColor(permColor);
+             restrictedPolygons.add(networkroom);
+             networkroom.setFillColor(resColor);
 
              Polygon civilPG = googleMap.addPolygon(new PolygonOptions()
                      .clickable(false)

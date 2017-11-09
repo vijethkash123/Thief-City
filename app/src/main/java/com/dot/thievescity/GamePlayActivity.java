@@ -93,7 +93,6 @@ public class GamePlayActivity extends AppCompatActivity implements OnMapReadyCal
             isRedOn = true;
             return;
         }
-        editor.putInt("activityOrder", 1);
         //startGemPlacementProcess();
 
     }
@@ -137,6 +136,7 @@ public class GamePlayActivity extends AppCompatActivity implements OnMapReadyCal
         {
             restartFromLocation();
         }
+        editor.putInt("activityOrder", 1);
 
        // if(Build.VERSION.SDK_INT < 23)
         //gpsTracker =new GpsTracker(this, mMap, GamePlayActivity.this);
@@ -169,12 +169,12 @@ public class GamePlayActivity extends AppCompatActivity implements OnMapReadyCal
 
     void startLocationService()
     {
-        if(gpsTracker.location == null)
-            gpsTracker.getLocation();
+       // if(gpsTracker.location == null)
+         //   gpsTracker.getLocation();
         Location lastKnownLocation;
             //LatLng yourLoc = new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude());
             //mMap.addMarker(new MarkerOptions().position(yourLoc).title("Marker in User Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(13.0173608,76.0923321),15));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(13.023727,76.102132),18));
             // our col loc here
             PolygonClass polygonClass = new PolygonClass(mMap);
             polygonClass.drawPolygons();
@@ -227,6 +227,8 @@ public class GamePlayActivity extends AppCompatActivity implements OnMapReadyCal
                 {
                     startGemPlacementProcess();
                     marker.remove();
+                    isRedOn = false;
+                    handler.removeCallbacksAndMessages(null);
                 }
                 else
                     handler.postDelayed(this, 3000);
@@ -258,6 +260,10 @@ public class GamePlayActivity extends AppCompatActivity implements OnMapReadyCal
         LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
         return PolyUtil.containsLocation(latLng,polygon.getPoints(), false);
 
+    }
+    @Override
+    public void onBackPressed() {
+        // Simply Do nothing!
     }
 boolean first;
     void startGemPlacementProcess()
@@ -335,13 +341,23 @@ boolean first;
         randomLocations.add(new LatLng(13.023777, 76.104390));
 
     }
-
+    boolean buttonPressed =false;
     public void onGemPlace(View view)
     {
+        if(buttonPressed)
+            return;
+        buttonPressed = true;
+        if(isRedOn)
+        {
+            createToast("Go to red marker location!");
+            buttonPressed = false;
+            return;
+        }
         if(gpsTracker.location == null || !isPlaceable(gpsTracker.location))
         {
-            //createToast("Cannot place here!!");
-            //return;
+            createToast("Cannot place here!!");
+            buttonPressed = false;
+            return;
         }
         first = true;
         myTimer.cancel();
@@ -365,8 +381,9 @@ boolean first;
 
         Location location = gpsTracker.location;
         if(location == null) {
-            Toast.makeText(getApplicationContext(), "PLace failed! Try again", Toast.LENGTH_SHORT).show();
-            gpsTracker.getLocation();
+            Toast.makeText(getApplicationContext(), "Place failed! Try again", Toast.LENGTH_SHORT).show();
+            //gpsTracker.getLocation();
+            buttonPressed = false;
             checkPermissionAndStart();
             return;
         }
@@ -402,6 +419,8 @@ boolean first;
                     else
                         loadSecondGamePlayActivity();
                 }
+
+                buttonPressed = false;
             }
         });
 
@@ -461,7 +480,8 @@ boolean first;
 
     void loadSecondGamePlayActivity()
     {
-        //gpsTracker = null;
+        //gpsTracker.stopUsingGPS();
+        //gpsTracker=null;
         Intent secondGamePlayActivity = new Intent(getApplicationContext(),SecondGamePlayActivity.class);
         startActivity(secondGamePlayActivity);
         finish();
@@ -469,7 +489,7 @@ boolean first;
 
     void loadMyGems(){
  //  assignnment of gems and values of them(3 types)
-        for(int type = 0; type < 3; type++){
+        for(int type = 2; type >= 0; type--){
             for(int i=0;i<5;i++)
                 myGems.add(new Gem(type,username));
         }

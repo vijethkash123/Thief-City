@@ -40,8 +40,7 @@
         <activity
             android:name=".GamePlayActivity"
             android:label="@string/title_activity_game_play"
-            android:screenOrientation="portrait"
-            />
+            android:screenOrientation="portrait" />
         <activity
             android:name=".SignInActivity"
             android:label="Thief City"
@@ -49,7 +48,6 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter android:label="Thief City">
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -62,14 +60,16 @@
             android:name=".SecondGamePlayActivity"
             android:label="@string/title_activity_second_game_play"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".PolygonDraw"
-            android:label="@string/title_activity_polygon_draw"></activity>
+            android:label="@string/title_activity_polygon_draw" />
         <activity
             android:name=".ResultActivity"
             android:label="@string/title_activity_result"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".UserRegistration">
+            </activity>
     </application>
 
 </manifest>
